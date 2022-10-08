@@ -1,1 +1,9 @@
+# Editor temporary files.
+*.swp
+
+# Python virtual environment.
 venv/
+
+# Pytest artifacts.
+.pytest_cache/
+__pycache__/
