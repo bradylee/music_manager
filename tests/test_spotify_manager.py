@@ -27,16 +27,46 @@ def test_get_spotify_playlist_items(requests_mock):
     token = "sample"
     playlist_id = "example"
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
-    response_data = {"hello": "world"}
 
-    # Test JSON data is returned on a good response.
+    # Trimmed down response data.
+    response_data = {
+      "items": [
+        {
+          "track": {
+            "id": "6bsxDgpU5nlcHNZYtsfZG8",
+            "name": "Bleeding Sun",
+          },
+        },
+        {
+          "track": {
+            "id": "15eQh5ZLBoMReY20MDG37T",
+            "name": "Breathless",
+          },
+        },
+        {
+          "track": {
+            "id": "2GDX9DpZgXsLAkXhHBQU1Q",
+            "name": "Choke",
+          },
+        },
+      ],
+    }
+
+    # Test that a good response results in a list of tracks.
     status_code = 200
     requests_mock.get(endpoint, json=response_data, status_code=status_code)
-    data = get_spotify_playlist_items(token, playlist_id)
-    assert data == response_data
+    tracks = get_spotify_playlist_items(token, playlist_id)
 
-    # Test None is returned on a bad response.
+    assert len(tracks) == 3
+
+    assert tracks[0].id == "6bsxDgpU5nlcHNZYtsfZG8"
+    assert tracks[0].name == "Bleeding Sun"
+    assert tracks[1].id == "15eQh5ZLBoMReY20MDG37T"
+    assert tracks[1].name == "Breathless"
+    assert tracks[2].id == "2GDX9DpZgXsLAkXhHBQU1Q"
+    assert tracks[2].name == "Choke"
+
+    # Test that a bad response results in None.
     status_code = 400
     requests_mock.get(endpoint, json=response_data, status_code=status_code)
-    data = get_spotify_playlist_items(token, playlist_id)
-    assert data == None
+    assert get_spotify_playlist_items(token, playlist_id) == None
