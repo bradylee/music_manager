@@ -1,4 +1,5 @@
 import json
+import logging
 import requests
 import sys
 
@@ -75,6 +76,7 @@ def get_spotify_playlist_items(token, playlist_id):
     response = requests.get(endpoint, headers=headers)
 
     if response.status_code != 200:
+        logging.error(f"Request responded with status {response.status_code}")
         return None
 
     data = response.json()
@@ -101,6 +103,14 @@ if __name__ == "__main__":
     token = sys.argv[1]
     playlist_id = sys.argv[2]
 
+    # Configure logger.
+    logging.basicConfig(
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    # Print playlist items.
     tracks = get_spotify_playlist_items(token, playlist_id)
-    for track in tracks:
-        print(track)
+    if tracks is not None:
+        for track in tracks:
+            print(track)
