@@ -1,6 +1,8 @@
 import json
 import logging
+from pathlib import Path
 import requests
+import sqlite3
 import sys
 
 
@@ -123,6 +125,65 @@ def get_spotify_playlist_items(token, playlist_id, limit=50):
     return tracks
 
 
+def create_tables(con, force=False):
+    """
+    Create tables for storing item information.
+    """
+    cur = con.cursor()
+
+    # Get a list of existing tables.
+    cmd = """
+    SELECT name
+      FROM sqlite_master
+     WHERE type='table'
+    """
+    rows = cur.execute(cmd).fetchall()
+    tables = [row[0] for row in rows]
+
+    # Drop tables to recreate on force.
+    if force:
+        if "tracks" in tables:
+            cur.execute("DROP TABLE tracks")
+        if "albums" in tables:
+            cur.execute("DROP TABLE albums")
+        if "artists" in tables:
+            cur.execute("DROP TABLE artists")
+
+    # Create the tracks table.
+    if "tracks" not in tables or force:
+        cmd = """
+        CREATE TABLE tracks (
+            id text NOT NULL PRIMARY KEY,
+            name text NOT NULL,
+            album text NOT NULL
+        )
+        """
+        cur.execute(cmd)
+
+    # Create the albums table.
+    if "albums" not in tables or force:
+        cmd = """
+        CREATE TABLE albums (
+            id text NOT NULL PRIMARY KEY,
+            name text NOT NULL,
+            artist text NOT NULL
+        )
+        """
+        cur.execute(cmd)
+
+    # Create the artists table.
+    if "artists" not in tables or force:
+        cmd = """
+        CREATE TABLE artists (
+            id text NOT NULL PRIMARY KEY,
+            name text NOT NULL
+        )
+        """
+        cur.execute(cmd)
+
+    con.commit()
+
+
 if __name__ == "__main__":
     # Get command line arguments.
     token = sys.argv[1]
@@ -135,9 +196,19 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
+    # Connect to the database.
+    # TODO: Make this path configurable.
+    database_path = Path("~/.spotify_manager.db").expanduser().resolve()
+    con = sqlite3.connect(database_path)
+
+    create_tables(con)
+
     # Print playlist items.
     tracks = get_spotify_playlist_items(token, playlist_id)
     if tracks is not None:
         for track in tracks:
             print(track)
         print(len(tracks))
+
+    # Close the database connection.
+    con.close()

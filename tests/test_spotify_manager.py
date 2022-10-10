@@ -1,4 +1,5 @@
 import requests_mock
+import sqlite3
 from urllib.parse import urlparse, parse_qs
 
 from src.spotify_manager import *
@@ -170,3 +171,46 @@ def test_get_spotify_playlist_items():
 
         assert get_spotify_playlist_items(token, playlist_id) == None
         assert mock.call_count == 1
+
+def test_create_tables(tmp_path):
+    """
+    Test `create_tables` by inserting and reading data.
+    """
+    # Create a new temporary database.
+    con = sqlite3.connect(tmp_path / "test.db")
+    cur = con.cursor()
+
+    # Function under test.
+    create_tables(con)
+
+    # Insert sample data into the tables.
+    cmd = """
+    INSERT INTO tracks(id, name, album)
+         VALUES ('2GDX9DpZgXsLAkXhHBQU1Q', 'Choke', '0a40snAsSiU0fSBrba93YB');
+
+    INSERT INTO albums(id, name, artist)
+         VALUES ('0a40snAsSiU0fSBrba93YB', 'World Demise', '7bDLHytU8vohbiWbePGrRU');
+
+    INSERT INTO artists(id, name)
+         VALUES ('7bDLHytU8vohbiWbePGrRU', 'Falsifier');
+    """
+    cur.executescript(cmd)
+
+    # Check the tables have data.
+    rows = cur.execute("SELECT * FROM tracks").fetchall()
+    assert len(rows) == 1
+    rows = cur.execute("SELECT * FROM albums").fetchall()
+    assert len(rows) == 1
+    rows = cur.execute("SELECT * FROM artists").fetchall()
+    assert len(rows) == 1
+
+    # Recreate the tables.
+    create_tables(con, force=True)
+
+    # Check the tables are now empty
+    rows = cur.execute("SELECT * FROM tracks").fetchall()
+    assert len(rows) == 0
+    rows = cur.execute("SELECT * FROM albums").fetchall()
+    assert len(rows) == 0
+    rows = cur.execute("SELECT * FROM artists").fetchall()
+    assert len(rows) == 0
