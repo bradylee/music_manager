@@ -238,6 +238,50 @@ def insert_artists(con, artists):
     con.commit()
 
 
+def get_album_list(tracks):
+    """
+    Get a list of unique albums from a list of tracks.
+    """
+    albums = []
+    lookup_table = set()
+    for track in tracks:
+        if track.album.id not in lookup_table:
+            lookup_table.add(track.album.id)
+            albums.append(track.album)
+    return albums
+
+
+def get_artist_list(albums):
+    """
+    Get a list of unique artists from a list of albums.
+    """
+    artists = []
+    lookup_table = set()
+    for album in albums:
+        if album.artist.id not in lookup_table:
+            lookup_table.add(album.artist.id)
+            artists.append(album.artist)
+    return artists
+
+
+def insert_items_from_playlist(con, token, playlist_id):
+    """
+    Get tracks from a playlist and insert data from tracks, albums, and artists into the
+    respective tables.
+    """
+    tracks = get_spotify_playlist_items(token, playlist_id)
+
+    if tracks is None:
+        return
+
+    albums = get_album_list(tracks)
+    artists = get_artist_list(albums)
+
+    insert_tracks(con, tracks)
+    insert_albums(con, albums)
+    insert_artists(con, artists)
+
+
 if __name__ == "__main__":
     # Get command line arguments.
     token = sys.argv[1]
@@ -255,14 +299,30 @@ if __name__ == "__main__":
     database_path = Path("~/.spotify_manager.db").expanduser().resolve()
     con = sqlite3.connect(database_path)
 
+    # Create and populate tables.
     create_tables(con)
+    insert_items_from_playlist(con, token, playlist_id)
 
-    # Print playlist items.
-    tracks = get_spotify_playlist_items(token, playlist_id)
-    if tracks is not None:
-        for track in tracks:
-            print(track)
-        print(len(tracks))
+    # Print summary information.
+    cur = con.cursor()
+
+    cmd = """
+    SELECT COUNT()
+      FROM tracks
+    """
+    print(cur.execute(cmd).fetchone()[0], "tracks")
+
+    cmd = """
+    SELECT COUNT()
+      FROM albums
+    """
+    print(cur.execute(cmd).fetchone()[0], "albums")
+
+    cmd = """
+    SELECT COUNT()
+      FROM artists
+    """
+    print(cur.execute(cmd).fetchone()[0], "artists")
 
     # Close the database connection.
     con.close()
