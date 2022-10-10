@@ -174,7 +174,7 @@ def test_get_spotify_playlist_items():
 
 def test_create_tables(tmp_path):
     """
-    Test `create_tables` by inserting and reading data.
+    Test `create_tables` by inserting and selecting data.
     """
     # Create a new temporary database.
     con = sqlite3.connect(tmp_path / "test.db")
@@ -214,3 +214,132 @@ def test_create_tables(tmp_path):
     assert len(rows) == 0
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert len(rows) == 0
+
+def test_insert_tracks(tmp_path):
+    """
+    Test `insert_tracks` by selecting data and comparing it to the input.
+    """
+    # Input data.
+    tracks = [
+        Track(
+            "6bsxDgpU5nlcHNZYtsfZG8",
+            "Bleeding Sun",
+            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun")
+        ),
+        Track(
+            "15eQh5ZLBoMReY20MDG37T",
+            "Breathless",
+            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured")
+        ),
+        Track(
+            "2GDX9DpZgXsLAkXhHBQU1Q",
+            "Choke",
+            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise")
+        ),
+    ]
+
+    # Create a new temporary database.
+    con = sqlite3.connect(tmp_path / "test.db")
+    cur = con.cursor()
+    create_tables(con)
+
+    # Function under test.
+    insert_tracks(con, tracks)
+
+    # Select data from the database to check it was inserted correctly.
+    cmd = """
+      SELECT id,
+             name,
+             album
+        FROM tracks
+    ORDER BY name
+    """
+    rows = cur.execute(cmd).fetchall()
+
+    assert len(rows) == 3
+
+    assert rows[0] == ("6bsxDgpU5nlcHNZYtsfZG8", "Bleeding Sun", "7hkhFnClNPmRXL20KqdzSO")
+    assert rows[1] == ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y")
+    assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")
+
+
+def test_insert_albums(tmp_path):
+    """
+    Test `insert_albums` by selecting data and comparing it to the input.
+    """
+    # Input data.
+    albums = [
+        Album(
+            "7hkhFnClNPmRXL20KqdzSO",
+            "Bleeding Sun",
+            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
+        ),
+        Album(
+            "1GLmxzF8g5p0fcdAatGq5Y",
+            "Fractured",
+            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
+        ),
+        Album(
+            "0a40snAsSiU0fSBrba93YB",
+            "World Demise",
+            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier")
+        ),
+    ]
+
+    # Create a new temporary database.
+    con = sqlite3.connect(tmp_path / "test.db")
+    cur = con.cursor()
+    create_tables(con)
+
+    # Function under test.
+    insert_albums(con, albums)
+
+    # Select data from the database to check it was inserted correctly.
+    cmd = """
+      SELECT id,
+             name,
+             artist
+        FROM albums
+    ORDER BY name
+    """
+    rows = cur.execute(cmd).fetchall()
+
+    assert len(rows) == 3
+
+    assert rows[0] == ("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun", "4UgQ3EFa8fEeaIEg54uV5b")
+    assert rows[1] == ("1GLmxzF8g5p0fcdAatGq5Y", "Fractured", "7z9n8Q0icbgvXqx1RWoGrd")
+    assert rows[2] == ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
+
+def test_insert_artists(tmp_path):
+    """
+    Test `insert_artists` by selecting data and comparing it to the input.
+    """
+    # Input data.
+    artists = [
+        Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin"),
+        Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
+        Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
+    ]
+
+    # Create a new temporary database.
+    con = sqlite3.connect(tmp_path / "test.db")
+    cur = con.cursor()
+    create_tables(con)
+
+    # Function under test.
+    insert_artists(con, artists)
+
+    # Select data from the database to check it was inserted correctly.
+    cmd = """
+      SELECT id,
+             name
+        FROM artists
+    ORDER BY name
+    """
+    rows = cur.execute(cmd).fetchall()
+
+    assert len(rows) == 3
+
+    assert rows[0] == ("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
+    assert rows[1] == ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
+    assert rows[2] == ("7bDLHytU8vohbiWbePGrRU", "Falsifier")

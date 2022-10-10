@@ -184,6 +184,60 @@ def create_tables(con, force=False):
     con.commit()
 
 
+def insert_tracks(con, tracks):
+    """
+    Insert data into the tracks table from a list of Track objects.
+    """
+    cur = con.cursor()
+
+    cmd = """
+    INSERT INTO tracks (id, name, album)
+         VALUES (?, ?, ?)
+    ON CONFLICT (id)
+             DO NOTHING
+    """
+    data = [(track.id, track.name, track.album.id) for track in tracks]
+    cur.executemany(cmd, data)
+
+    con.commit()
+
+
+def insert_albums(con, albums):
+    """
+    Insert data into the albums table from a list of Album objects.
+    """
+    cur = con.cursor()
+
+    cmd = """
+    INSERT INTO albums (id, name, artist)
+         VALUES (?, ?, ?)
+    ON CONFLICT (id)
+             DO NOTHING
+    """
+    data = [(album.id, album.name, album.artist.id) for album in albums]
+    cur.executemany(cmd, data)
+
+    con.commit()
+
+
+def insert_artists(con, artists):
+    """
+    Insert data into the artists table from a list of Artist objects.
+    """
+    cur = con.cursor()
+
+    cmd = """
+    INSERT INTO artists (id, name)
+         VALUES (?, ?)
+    ON CONFLICT (id)
+             DO NOTHING
+    """
+    data = [(artist.id, artist.name) for artist in artists]
+    cur.executemany(cmd, data)
+
+    con.commit()
+
+
 if __name__ == "__main__":
     # Get command line arguments.
     token = sys.argv[1]
