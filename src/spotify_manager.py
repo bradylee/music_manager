@@ -5,6 +5,8 @@ import requests
 import sqlite3
 import sys
 
+from src import schema
+
 
 class Item:
     """
@@ -127,9 +129,13 @@ def get_spotify_playlist_items(token, playlist_id, limit=50):
 
 def create_tables(con, force=False):
     """
-    Create tables for storing item information.
+    Create tables for storing item information using the latest schema.
     """
     cur = con.cursor()
+
+    # Get the latest schema.
+    version = get_latest_schema_version()
+    schema = get_schema(version)
 
     # Get a list of existing tables.
     cmd = """
@@ -148,38 +154,38 @@ def create_tables(con, force=False):
             cur.execute("DROP TABLE albums")
         if "artists" in tables:
             cur.execute("DROP TABLE artists")
+        if "version" in tables:
+            cur.execute("DROP TABLE version")
 
     # Create the tracks table.
     if "tracks" not in tables or force:
-        cmd = """
-        CREATE TABLE tracks (
-            id text NOT NULL PRIMARY KEY,
-            name text NOT NULL,
-            album text NOT NULL
-        )
-        """
-        cur.execute(cmd)
+        create_table_from_schema(con, "tracks", schema["tracks"])
 
     # Create the albums table.
     if "albums" not in tables or force:
+        create_table_from_schema(con, "albums", schema["albums"])
+
+    # Create the artists table.
+    if "artists" not in tables or force:
+        create_table_from_schema(con, "artists", schema["artists"])
+
+    # Create a table to track the schema version.
+    if "version" not in tables or force:
         cmd = """
-        CREATE TABLE albums (
-            id text NOT NULL PRIMARY KEY,
-            name text NOT NULL,
-            artist text NOT NULL
+        CREATE TABLE version (
+            major int NOT NULL PRIMARY KEY CHECK (major >= 0),
+            minor int NOT NULL CHECK (minor >= 0),
+            patch int NOT NULL CHECK (patch >= 0)
         )
         """
         cur.execute(cmd)
 
-    # Create the artists table.
-    if "artists" not in tables or force:
+        # Set the version.
         cmd = """
-        CREATE TABLE artists (
-            id text NOT NULL PRIMARY KEY,
-            name text NOT NULL
-        )
+        INSERT INTO version (major, minor, patch)
+             VALUES (?, ?, ?)
         """
-        cur.execute(cmd)
+        cur.execute(cmd, version)
 
     con.commit()
 
@@ -280,6 +286,65 @@ def insert_items_from_playlist(con, token, playlist_id):
     insert_tracks(con, tracks)
     insert_albums(con, albums)
     insert_artists(con, artists)
+
+
+def semantic_version_to_tuple(string):
+    """
+    Convert a semantic version string to a tuple.
+    This is useful for sorting versions by a numeric value.
+    This assumes a string of the format "MAJOR.MINOR.PATCH".
+    Semantic version extensions are not supported.
+    """
+    parts = string.split('.')
+    # Convert each part to an integer.
+    version = [int(part) for part in parts]
+    return tuple(version)
+
+
+def tuple_to_semantic_version(version):
+    """
+    Convert a tuple of three integers to a semantic version string.
+    """
+    # Convert each part of the tuple to a string.
+    parts = [str(part) for part in version]
+    return '.'.join(parts)
+
+
+def get_latest_schema_version(schemas=None):
+    """
+    Return the latest version from the schemas lookup.
+    """
+    if schemas is None:
+        schemas = schema.schemas
+
+    # We use semantic versioning with no extensions, so we can simply sort after parsing to get
+    # the latest version.
+    versions = [semantic_version_to_tuple(key) for key in schemas.keys()]
+    return sorted(versions)[-1]
+
+
+def get_schema(version):
+    """
+    Return the schema associated with the given version or None if the version does not exist.
+    """
+    semantic_version = tuple_to_semantic_version(version)
+    return schema.schemas.get(semantic_version, None)
+
+
+def create_table_from_schema(con, name, schema):
+    """
+    Create a table from the given schema. This assumes the table does not exist.
+    """
+    # Get the parameters from the schema.
+    parameters = [f"{column} {datatype}" for column, datatype in schema.items()]
+
+    # Create the table.
+    cmd = f"""
+    CREATE TABLE {name} (
+        {','.join(parameters)}
+    )
+    """
+    con.execute(cmd)
 
 
 if __name__ == "__main__":
