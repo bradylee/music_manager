@@ -2,7 +2,8 @@ import requests_mock
 import sqlite3
 from urllib.parse import urlparse, parse_qs
 
-from src.spotify_manager import *
+from src import spotify_manager as dut
+from src.item import Track, Album, Artist
 
 
 def test_get_spotify_request_headers():
@@ -12,14 +13,14 @@ def test_get_spotify_request_headers():
     """
     # Test a sample token.
     token = "sample"
-    headers = get_spotify_request_headers(token)
+    headers = dut.get_spotify_request_headers(token)
     assert headers["Accept"] == "application/json"
     assert headers["Content-Type"] == "application/json"
     assert headers["Authorization"] == "Bearer sample"
 
     # Test another sample.
     token = "another_sample"
-    headers = get_spotify_request_headers(token)
+    headers = dut.get_spotify_request_headers(token)
     assert headers["Authorization"] == "Bearer another_sample"
 
 
@@ -108,7 +109,7 @@ def test_get_spotify_playlist_items():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=get_response, status_code=status_code)
-        tracks = get_spotify_playlist_items(token, playlist_id)
+        tracks = dut.get_spotify_playlist_items(token, playlist_id)
 
         assert len(tracks) == 3
         assert mock.call_count == 1
@@ -138,7 +139,7 @@ def test_get_spotify_playlist_items():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=get_response, status_code=status_code)
-        tracks = get_spotify_playlist_items(token, playlist_id, limit=1)
+        tracks = dut.get_spotify_playlist_items(token, playlist_id, limit=1)
 
         assert len(tracks) == 3
         assert mock.call_count == 3
@@ -169,7 +170,7 @@ def test_get_spotify_playlist_items():
         status_code = 400
         mock.get(endpoint, json=get_response, status_code=status_code)
 
-        assert get_spotify_playlist_items(token, playlist_id) is None
+        assert dut.get_spotify_playlist_items(token, playlist_id) is None
         assert mock.call_count == 1
 
 def test_create_tables(tmp_path):
@@ -177,11 +178,11 @@ def test_create_tables(tmp_path):
     Test `create_tables` by inserting and selecting data.
     """
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Function under test.
-    create_tables(con)
+    dut.create_tables(con)
 
     # Insert sample data into the tables.
     cmd = """
@@ -205,7 +206,7 @@ def test_create_tables(tmp_path):
     assert len(rows) == 1
 
     # Recreate the tables.
-    create_tables(con, force=True)
+    dut.create_tables(con, force=True)
 
     # Check the tables are now empty
     rows = cur.execute("SELECT * FROM tracks").fetchall()
@@ -217,7 +218,7 @@ def test_create_tables(tmp_path):
 
     # Check the version table includes the latest version.
     rows = cur.execute("SELECT * FROM version").fetchall()
-    version = get_latest_schema_version()
+    version = dut.get_latest_schema_version()
     assert rows == [version]
 
 def test_insert_tracks(tmp_path):
@@ -244,12 +245,12 @@ def test_insert_tracks(tmp_path):
     ]
 
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
-    create_tables(con)
+    dut.create_tables(con)
 
     # Function under test.
-    insert_tracks(con, tracks)
+    dut.insert_tracks(con, tracks)
 
     # Select data from the database to check it was inserted correctly.
     cmd = """
@@ -292,12 +293,12 @@ def test_insert_albums(tmp_path):
     ]
 
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
-    create_tables(con)
+    dut.create_tables(con)
 
     # Function under test.
-    insert_albums(con, albums)
+    dut.insert_albums(con, albums)
 
     # Select data from the database to check it was inserted correctly.
     cmd = """
@@ -327,12 +328,12 @@ def test_insert_artists(tmp_path):
     ]
 
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
-    create_tables(con)
+    dut.create_tables(con)
 
     # Function under test.
-    insert_artists(con, artists)
+    dut.insert_artists(con, artists)
 
     # Select data from the database to check it was inserted correctly.
     cmd = """
@@ -378,7 +379,7 @@ def test_get_album_list():
     ]
 
     # Function under test.
-    albums = get_album_list(tracks)
+    albums = dut.get_album_list(tracks)
 
     # Check the duplicate album was removed.
     assert len(albums) == 3
@@ -420,7 +421,7 @@ def test_get_artist_list():
     ]
 
     # Function under test.
-    artists = get_artist_list(albums)
+    artists = dut.get_artist_list(albums)
 
     # Check the duplicate artist was removed.
     assert len(artists) == 3
@@ -443,11 +444,11 @@ def test_insert_items_from_playlist(tmp_path):
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Function under test.
-    create_tables(con)
+    dut.create_tables(con)
 
     # Mock response data.
     response_data = {
@@ -508,7 +509,7 @@ def test_insert_items_from_playlist(tmp_path):
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        insert_items_from_playlist(con, token, playlist_id)
+        dut.insert_items_from_playlist(con, token, playlist_id)
 
     # Select and check track data.
     cmd = """
@@ -561,17 +562,17 @@ def test_semantic_version_to_tuple():
     """
     Test `semantic_version_to_tuple` with example data.
     """
-    assert semantic_version_to_tuple("1.0.0") == (1, 0, 0)
-    assert semantic_version_to_tuple("10.0.1") == (10, 0, 1)
-    assert semantic_version_to_tuple("2.10.100") == (2, 10, 100)
+    assert dut.semantic_version_to_tuple("1.0.0") == (1, 0, 0)
+    assert dut.semantic_version_to_tuple("10.0.1") == (10, 0, 1)
+    assert dut.semantic_version_to_tuple("2.10.100") == (2, 10, 100)
 
 def test_tuple_to_semantic_version():
     """
     Test `tuple_to_semantic_version` with example data.
     """
-    assert tuple_to_semantic_version((1, 0, 0)) == "1.0.0"
-    assert tuple_to_semantic_version((10, 0, 1)) == "10.0.1"
-    assert tuple_to_semantic_version((2, 10, 100)) == "2.10.100"
+    assert dut.tuple_to_semantic_version((1, 0, 0)) == "1.0.0"
+    assert dut.tuple_to_semantic_version((10, 0, 1)) == "10.0.1"
+    assert dut.tuple_to_semantic_version((2, 10, 100)) == "2.10.100"
 
 def test_get_latest_schema_version():
     """
@@ -585,7 +586,7 @@ def test_get_latest_schema_version():
         "2.0.10": 'd',
     }
 
-    assert get_latest_schema_version(schemas) == (10, 10, 0)
+    assert dut.get_latest_schema_version(schemas) == (10, 10, 0)
 
 def test_get_schema():
     """
@@ -593,7 +594,7 @@ def test_get_schema():
     """
 
     # Check the value for a real version.
-    assert get_schema((1,0,0)) == {
+    assert dut.get_schema((1,0,0)) == {
         "tracks": {
             "id": "text NOT NULL PRIMARY KEY",
             "name": "text NOT NULL",
@@ -611,14 +612,14 @@ def test_get_schema():
     }
 
     # Check the value for a fake version.
-    assert get_schema((0,0,0)) is None
+    assert dut.get_schema((0,0,0)) is None
 
 def test_create_table_from_schema(tmp_path):
     """
     Test `create_table_from_schema` by creating an example table and inserting and selecting data.
     """
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Example schema.
@@ -628,7 +629,7 @@ def test_create_table_from_schema(tmp_path):
     }
 
     # Function under test.
-    create_table_from_schema(con, "example", schema)
+    dut.create_table_from_schema(con, "example", schema)
 
     # Insert sample data into the tables.
     data = [
@@ -650,11 +651,11 @@ def test_update_tables(tmp_path):
     Test `update_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
     """
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Create tables with an older version.
-    create_tables(con, version=(1,0,0))
+    dut.create_tables(con, version=(1,0,0))
 
     # Insert sample data into the tables.
     cmd = """
@@ -678,7 +679,7 @@ def test_update_tables(tmp_path):
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
 
     # Function under test.
-    update_tables(con, (1,1,0))
+    dut.update_tables(con, (1,1,0))
 
     # Check the tables now include 1.1.0 columns with default values.
     rows = cur.execute("SELECT * FROM tracks").fetchall()
@@ -693,7 +694,7 @@ def test_update_tables(tmp_path):
     assert rows == [(1,1,0)]
 
     # Check that running again does nothing.
-    update_tables(con, (1,1,0))
+    dut.update_tables(con, (1,1,0))
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
     rows = cur.execute("SELECT * FROM albums").fetchall()
@@ -708,9 +709,9 @@ def test_print_summary(tmp_path, capsys):
     Test `print_summary` by inserting data into a new database.
     """
     # Create a new temporary database.
-    con = open_database(tmp_path / "test.db")
+    con = dut.open_database(tmp_path / "test.db")
     cur = con.cursor()
-    create_tables(con)
+    dut.create_tables(con)
 
     # Create and insert example data.
     artists = [
@@ -740,7 +741,7 @@ def test_print_summary(tmp_path, capsys):
     cur.executemany("INSERT INTO tracks(id, name, album) VALUES (?, ?, ?)", tracks)
 
     # Function under test.
-    print_summary(con)
+    dut.print_summary(con)
 
     # Check the output.
     captured = capsys.readouterr()
