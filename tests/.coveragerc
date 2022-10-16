@@ -12,3 +12,6 @@ exclude_lines =
 
     # Ignore script code, which is not normally run in unit tests.
     if __name__ == .__main__.:
+
+# Ignore empty files.
+skip_empty = True
