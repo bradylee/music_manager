@@ -1,0 +1,14 @@
+[run]
+branch = True
+
+[report]
+# Regular expressions to exclude code from coverage reporting.
+exclude_lines =
+    # Re-add the standard pragma.
+    pragma: no cover
+
+    # Ignore debug-only code.
+    def __repr__
+
+    # Ignore script code, which is not normally run in unit tests.
+    if __name__ == .__main__.:
