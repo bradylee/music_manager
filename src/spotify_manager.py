@@ -127,35 +127,50 @@ def get_spotify_playlist_items(token, playlist_id, limit=50):
     return tracks
 
 
-def create_tables(con, force=False):
+def get_tables(con):
     """
-    Create tables for storing item information using the latest schema.
+    Returns a list of existing tables in the database.
     """
-    cur = con.cursor()
-
-    # Get the latest schema.
-    version = get_latest_schema_version()
-    schema = get_schema(version)
-
-    # Get a list of existing tables.
     cmd = """
     SELECT name
       FROM sqlite_master
      WHERE type='table'
     """
-    rows = cur.execute(cmd).fetchall()
+    rows = con.execute(cmd).fetchall()
     tables = [row[0] for row in rows]
+    return tables
+
+
+def drop_table(con, name):
+    """
+    Drop a table if it exists.
+    """
+    if name in get_tables(con):
+        cur = con.cursor()
+        cur.execute(f"DROP TABLE {name}")
+        con.commit()
+
+
+def create_tables(con, version=None, force=False):
+    """
+    Create tables for storing item information using the latest schema.
+    """
+    cur = con.cursor()
+
+    # Default to latest version if one is not given.
+    if version is None:
+        version = get_latest_schema_version()
+    schema = get_schema(version)
+
+    # Get a list of existing tables.
+    tables = get_tables(con)
 
     # Drop tables to recreate on force.
     if force:
-        if "tracks" in tables:
-            cur.execute("DROP TABLE tracks")
-        if "albums" in tables:
-            cur.execute("DROP TABLE albums")
-        if "artists" in tables:
-            cur.execute("DROP TABLE artists")
-        if "version" in tables:
-            cur.execute("DROP TABLE version")
+        drop_table(con, "tracks")
+        drop_table(con, "albums")
+        drop_table(con, "artists")
+        drop_table(con, "version")
 
     # Create the tracks table.
     if "tracks" not in tables or force:
@@ -347,6 +362,57 @@ def create_table_from_schema(con, name, schema):
     con.execute(cmd)
 
 
+def update_tables(con, new_version):
+    """
+    Update tables to the given schema version.
+    """
+    existing_tables = get_tables(con)
+    item_tables = ["tracks", "albums", "artists"]
+
+    # Make sure the tables to be updated exist.
+    for table in item_tables:
+        if table not in existing_tables:
+            logging.error(f"Cannot update tables because {table} does not exist")
+            return
+
+    # Get current schema version.
+    cur = con.cursor()
+    if "version" in existing_tables:
+        current_version = cur.execute("SELECT * FROM version").fetchone()
+    else:
+        # Assume the oldest version if the version table does not exist.
+        current_version = (1,0,0)
+
+    # Quit if there is nothing to update.
+    if new_version == current_version:
+        return
+
+    # Add new columns to the item tables.
+    current_schema = get_schema(current_version)
+    new_schema = get_schema(new_version)
+    for table in item_tables:
+        for column in new_schema[table].keys():
+            if column in current_schema[table]:
+                continue
+            definition = new_schema[table][column]
+            cmd = f"""
+            ALTER TABLE {table}
+                    ADD {column} {definition}
+            """
+            cur.execute(cmd)
+
+    # Update the version.
+    cmd = """
+    UPDATE version
+       SET major = ?,
+           minor = ?,
+           patch = ?
+    """
+    cur.execute(cmd, new_version)
+
+    con.commit()
+
+
 if __name__ == "__main__":
     # Get command line arguments.
     token = sys.argv[1]
@@ -366,6 +432,7 @@ if __name__ == "__main__":
 
     # Create and populate tables.
     create_tables(con)
+    update_tables(con, (1,1,0))
     insert_items_from_playlist(con, token, playlist_id)
 
     # Print summary information.

@@ -644,3 +644,61 @@ def test_create_table_from_schema(tmp_path):
     # Check the tables have data.
     rows = cur.execute("SELECT * FROM example").fetchall()
     assert len(rows) == 2
+
+def test_update_tables(tmp_path):
+    """
+    Test `update_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
+    """
+    # Create a new temporary database.
+    con = sqlite3.connect(tmp_path / "test.db")
+    cur = con.cursor()
+
+    # Create tables with an older version.
+    create_tables(con, version=(1,0,0))
+
+    # Insert sample data into the tables.
+    cmd = """
+    INSERT INTO tracks(id, name, album)
+         VALUES ('2GDX9DpZgXsLAkXhHBQU1Q', 'Choke', '0a40snAsSiU0fSBrba93YB');
+
+    INSERT INTO albums(id, name, artist)
+         VALUES ('0a40snAsSiU0fSBrba93YB', 'World Demise', '7bDLHytU8vohbiWbePGrRU');
+
+    INSERT INTO artists(id, name)
+         VALUES ('7bDLHytU8vohbiWbePGrRU', 'Falsifier');
+    """
+    cur.executescript(cmd)
+
+    # Check the tables have only 1.0.0 columns.
+    rows = cur.execute("SELECT * FROM tracks").fetchall()
+    assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")]
+    rows = cur.execute("SELECT * FROM albums").fetchall()
+    assert rows == [("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")]
+    rows = cur.execute("SELECT * FROM artists").fetchall()
+    assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
+
+    # Function under test.
+    update_tables(con, (1,1,0))
+
+    # Check the tables now include 1.1.0 columns with default values.
+    rows = cur.execute("SELECT * FROM tracks").fetchall()
+    assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
+    rows = cur.execute("SELECT * FROM albums").fetchall()
+    assert rows == [("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")]
+    rows = cur.execute("SELECT * FROM artists").fetchall()
+    assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
+
+    # Check the version table shows the updated version.
+    rows = cur.execute("SELECT * FROM version").fetchall()
+    assert rows == [(1,1,0)]
+
+    # Check that running again does nothing.
+    update_tables(con, (1,1,0))
+    rows = cur.execute("SELECT * FROM tracks").fetchall()
+    assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
+    rows = cur.execute("SELECT * FROM albums").fetchall()
+    assert rows == [("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")]
+    rows = cur.execute("SELECT * FROM artists").fetchall()
+    assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
+    rows = cur.execute("SELECT * FROM version").fetchall()
+    assert rows == [(1,1,0)]
