@@ -177,7 +177,7 @@ def test_create_tables(tmp_path):
     Test `create_tables` by inserting and selecting data.
     """
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Function under test.
@@ -244,7 +244,7 @@ def test_insert_tracks(tmp_path):
     ]
 
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
     create_tables(con)
 
@@ -292,7 +292,7 @@ def test_insert_albums(tmp_path):
     ]
 
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
     create_tables(con)
 
@@ -327,7 +327,7 @@ def test_insert_artists(tmp_path):
     ]
 
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
     create_tables(con)
 
@@ -443,7 +443,7 @@ def test_insert_items_from_playlist(tmp_path):
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Function under test.
@@ -618,7 +618,7 @@ def test_create_table_from_schema(tmp_path):
     Test `create_table_from_schema` by creating an example table and inserting and selecting data.
     """
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Example schema.
@@ -650,7 +650,7 @@ def test_update_tables(tmp_path):
     Test `update_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
     """
     # Create a new temporary database.
-    con = sqlite3.connect(tmp_path / "test.db")
+    con = open_database(tmp_path / "test.db")
     cur = con.cursor()
 
     # Create tables with an older version.
@@ -702,3 +702,46 @@ def test_update_tables(tmp_path):
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
     rows = cur.execute("SELECT * FROM version").fetchall()
     assert rows == [(1,1,0)]
+
+def test_print_summary(tmp_path, capsys):
+    """
+    Test `print_summary` by inserting data into a new database.
+    """
+    # Create a new temporary database.
+    con = open_database(tmp_path / "test.db")
+    cur = con.cursor()
+    create_tables(con)
+
+    # Create and insert example data.
+    artists = [
+        ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
+        ("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
+    ]
+    cur.executemany("INSERT INTO artists(id, name) VALUES (?, ?)", artists)
+
+    albums = [
+        ("1GLmxzF8g5p0fcdAatGq5Y", "Fractured", "7z9n8Q0icbgvXqx1RWoGrd"),
+        ("1GLmxzF8g5p0fcdAatGq5Y2", "Fractured 2", "7z9n8Q0icbgvXqx1RWoGrd"),
+        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU"),
+        ("0a40snAsSiU0fSBrba93YB2", "World Demise 2", "7bDLHytU8vohbiWbePGrRU"),
+    ]
+    cur.executemany("INSERT INTO albums(id, name, artist) VALUES (?, ?, ?)", albums)
+
+    tracks = [
+        ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y"),
+        ("15eQh5ZLBoMReY20MDG37T2", "Breathless 2", "1GLmxzF8g5p0fcdAatGq5Y"),
+        ("15eQh5ZLBoMReY20MDG37T3", "Breathless 3", "1GLmxzF8g5p0fcdAatGq5Y2"),
+        ("15eQh5ZLBoMReY20MDG37T4", "Breathless 4", "1GLmxzF8g5p0fcdAatGq5Y2"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q2", "Choke 2", "0a40snAsSiU0fSBrba93YB"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q3", "Choke 3", "0a40snAsSiU0fSBrba93YB2"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q4", "Choke 4", "0a40snAsSiU0fSBrba93YB2"),
+    ]
+    cur.executemany("INSERT INTO tracks(id, name, album) VALUES (?, ?, ?)", tracks)
+
+    # Function under test.
+    print_summary(con)
+
+    # Check the output.
+    captured = capsys.readouterr()
+    assert captured.out == "8 tracks\n4 albums\n2 artists\n"

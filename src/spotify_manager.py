@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 from pathlib import Path
@@ -413,28 +414,33 @@ def update_tables(con, new_version):
     con.commit()
 
 
-if __name__ == "__main__":
-    # Get command line arguments.
-    token = sys.argv[1]
-    playlist_id = sys.argv[2]
+def open_database(path=None):
+    """
+    Open and return a database connection.
+    """
+    if path is None:
+        # Default path if none is given.
+        path = "~/.spotify_manager.db"
+    database_path = Path(path).expanduser().resolve()
+    con = sqlite3.connect(database_path)
+    return con
 
-    # Configure logger.
+
+def configure_logger():
+    """
+    Configure the application logger.
+    """
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    # Connect to the database.
-    # TODO: Make this path configurable.
-    database_path = Path("~/.spotify_manager.db").expanduser().resolve()
-    con = sqlite3.connect(database_path)
 
-    # Create and populate tables.
-    create_tables(con)
-    update_tables(con, (1,1,0))
-    insert_items_from_playlist(con, token, playlist_id)
-
+def print_summary(con):
+    """
+    Print database summary information.
+    """
     # Print summary information.
     cur = con.cursor()
 
@@ -455,6 +461,36 @@ if __name__ == "__main__":
       FROM artists
     """
     print(cur.execute(cmd).fetchone()[0], "artists")
+
+
+if __name__ == "__main__":
+    # Command line arguments.
+    parser = argparse.ArgumentParser(description="Spotify Manager")
+    parser.add_argument("--token", type=str, help="Spotify access token")
+    parser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
+    subparsers = parser.add_subparsers(help="sub-command help", dest="subparser")
+    subparsers.add_parser("init", help="Initialize the database")
+    subparsers.add_parser("add", help="Add items to the database")
+    subparsers.add_parser("show", help="Print database summary information")
+    args = parser.parse_args()
+
+    # Configure logger.
+    configure_logger()
+
+    # Open the database connection.
+    con = open_database()
+
+    # Execute the parsed command.
+    if args.subparser == "init":
+        create_tables(con)
+        update_tables(con, (1,1,0))
+    elif args.subparser == "add":
+        insert_items_from_playlist(con, args.token, args.playlist_id)
+    elif args.subparser == "show":
+        print_summary(con)
+    else:
+        # Default to print help.
+        parser.print_help()
 
     # Close the database connection.
     con.close()
