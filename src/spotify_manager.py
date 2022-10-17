@@ -30,28 +30,26 @@ class SpotifyManager():
 
         # Command line arguments.
         parser = argparse.ArgumentParser(description="Spotify Manager")
-        parser.add_argument("--token", type=str, help="Spotify access token")
-        parser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
         subparsers = parser.add_subparsers(help="sub-command help", dest="subparser")
-        subparsers.add_parser("init", help="Initialize the database")
+        subparser = subparsers.add_parser("init", help="Initialize the database")
+        subparser.add_argument("--force", "-f", action="store_true", help="Set to drop and re-create any existing tables")
         subparsers.add_parser("upgrade", help="Upgrade the database schema to the latest version")
-        subparsers.add_parser("add", help="Add items to the database")
+        subparser = subparsers.add_parser("add", help="Add items to the database")
+        subparser.add_argument("--token", type=str, help="Spotify access token")
+        subparser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
         subparsers.add_parser("show", help="Print database summary information")
         self.parser = parser
 
     def run(self, argv=None):
         args = self.parser.parse_args(argv)
 
-        # Initialize the Spotify interface if we have a token.
-        if args.token is not None:
-            self.api = SpotifyInterface(args.token)
-
         # Execute the parsed command.
         if args.subparser == "init":
-            self.db.create_tables()
+            self.db.create_tables(force=args.force)
         elif args.subparser == "upgrade":
             self.db.upgrade_tables()
         elif args.subparser == "add":
+            self.api = SpotifyInterface(args.token)
             self.insert_items_from_playlist(args.playlist_id)
         elif args.subparser == "show":
             self.db.print_summary()
