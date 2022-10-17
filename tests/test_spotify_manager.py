@@ -17,12 +17,10 @@ def test_insert_items_from_playlist(tmp_path):
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
     # Create a new temporary database.
-    db = database_interface.DatabaseInterface(tmp_path / "test.db")
-    db.create_tables()
-    cur = db.con.cursor()
-
-    # Create the Spotify interface.
-    api = SpotifyInterface(token)
+    database_path = tmp_path / "test.db"
+    app = dut.SpotifyManager(database_path, token)
+    app.db.create_tables()
+    cur = app.db.con.cursor()
 
     # Mock response data.
     response_data = {
@@ -83,7 +81,7 @@ def test_insert_items_from_playlist(tmp_path):
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        dut.insert_items_from_playlist(db, api, playlist_id)
+        app.insert_items_from_playlist(playlist_id)
 
     # Select and check track data.
     cmd = """
@@ -137,9 +135,9 @@ def test_print_summary(tmp_path, capsys):
     Test `print_summary` by inserting data into a new database.
     """
     # Create a new temporary database.
-    db = database_interface.DatabaseInterface(tmp_path / "test.db")
-    db.create_tables()
-    cur = db.con.cursor()
+    app = dut.SpotifyManager(tmp_path / "test.db")
+    app.db.create_tables()
+    cur = app.db.con.cursor()
 
     # Create and insert example data.
     artists = [
@@ -169,7 +167,7 @@ def test_print_summary(tmp_path, capsys):
     cur.executemany("INSERT INTO tracks(id, name, album) VALUES (?, ?, ?)", tracks)
 
     # Function under test.
-    dut.print_summary(db)
+    app.print_summary()
 
     # Check the output.
     captured = capsys.readouterr()

@@ -7,59 +7,68 @@ from src.item import Track, Album, Artist
 from src.spotify_interface import SpotifyInterface
 
 
-def insert_items_from_playlist(db, api, playlist_id):
+class SpotifyManager():
     """
-    Get tracks from a playlist and insert data from tracks, albums, and artists into the
-    respective tables.
+    Application class for the Spotify Manager.
     """
-    tracks = api.get_playlist_items(playlist_id)
+    def __init__(self, database_path=None, token=''):
+        """
+        Initialize the application.
+        """
+        # Configure logger.
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
 
-    if tracks is None:
-        return
+        # Open the database connection.
+        self.db = DatabaseInterface(database_path)
 
-    albums = item.get_album_list(tracks)
-    artists = item.get_artist_list(albums)
+        # Create the Spotify interface.
+        self.api = SpotifyInterface(token)
 
-    db.insert_tracks(tracks)
-    db.insert_albums(albums)
-    db.insert_artists(artists)
+    def insert_items_from_playlist(self, playlist_id):
+        """
+        Get tracks from a playlist and insert data from tracks, albums, and artists into the
+        respective tables.
+        """
+        tracks = self.api.get_playlist_items(playlist_id)
 
+        if tracks is None:
+            return
 
-def configure_logger():
-    """
-    Configure the application logger.
-    """
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
+        albums = item.get_album_list(tracks)
+        artists = item.get_artist_list(albums)
 
+        self.db.insert_tracks(tracks)
+        self.db.insert_albums(albums)
+        self.db.insert_artists(artists)
 
-def print_summary(db):
-    """
-    Print database summary information.
-    """
-    # Print summary information.
-    cur = db.con.cursor()
+    def print_summary(self):
+        """
+        Print database summary information.
+        """
+        # Print summary information.
+        cur = self.db.con.cursor()
 
-    cmd = """
-    SELECT COUNT()
-      FROM tracks
-    """
-    print(cur.execute(cmd).fetchone()[0], "tracks")
+        cmd = """
+        SELECT COUNT()
+          FROM tracks
+        """
+        print(cur.execute(cmd).fetchone()[0], "tracks")
 
-    cmd = """
-    SELECT COUNT()
-      FROM albums
-    """
-    print(cur.execute(cmd).fetchone()[0], "albums")
+        cmd = """
+        SELECT COUNT()
+          FROM albums
+        """
+        print(cur.execute(cmd).fetchone()[0], "albums")
 
-    cmd = """
-    SELECT COUNT()
-      FROM artists
-    """
-    print(cur.execute(cmd).fetchone()[0], "artists")
+        cmd = """
+        SELECT COUNT()
+          FROM artists
+        """
+        print(cur.execute(cmd).fetchone()[0], "artists")
 
 
 if __name__ == "__main__":
@@ -73,23 +82,17 @@ if __name__ == "__main__":
     subparsers.add_parser("show", help="Print database summary information")
     args = parser.parse_args()
 
-    # Configure logger.
-    configure_logger()
-
-    # Open the database connection.
-    db = DatabaseInterface()
-
-    # Create the Spotify interface.
-    api = SpotifyInterface(args.token)
+    # Create an application object.
+    app = SpotifyManager(token=args.token)
 
     # Execute the parsed command.
     if args.subparser == "init":
-        db.create_tables()
-        db.update_tables((1,1,0))
+        app.db.create_tables()
+        app.db.update_tables((1,1,0))
     elif args.subparser == "add":
-        insert_items_from_playlist(db, api, args.playlist_id)
+        app.insert_items_from_playlist(args.playlist_id)
     elif args.subparser == "show":
-        print_summary(db)
+        app.print_summary()
     else:
         # Default to print help.
         parser.print_help()
