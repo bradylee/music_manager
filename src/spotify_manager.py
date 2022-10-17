@@ -54,7 +54,7 @@ class SpotifyManager():
         elif args.subparser == "add":
             self.insert_items_from_playlist(args.playlist_id)
         elif args.subparser == "show":
-            self.print_summary()
+            self.db.print_summary()
         else:
             # Default to print help.
             parser.print_help()
@@ -79,31 +79,6 @@ class SpotifyManager():
         self.db.insert_tracks(tracks)
         self.db.insert_albums(albums)
         self.db.insert_artists(artists)
-
-    def print_summary(self):
-        """
-        Print database summary information.
-        """
-        # Print summary information.
-        cur = self.db.con.cursor()
-
-        cmd = """
-        SELECT COUNT()
-          FROM tracks
-        """
-        print(cur.execute(cmd).fetchone()[0], "tracks")
-
-        cmd = """
-        SELECT COUNT()
-          FROM albums
-        """
-        print(cur.execute(cmd).fetchone()[0], "albums")
-
-        cmd = """
-        SELECT COUNT()
-          FROM artists
-        """
-        print(cur.execute(cmd).fetchone()[0], "artists")
 
 
 if __name__ == "__main__":

@@ -260,3 +260,28 @@ class DatabaseInterface():
         cur.execute(cmd, new_version)
 
         self.con.commit()
+
+    def print_summary(self):
+        """
+        Print database summary information.
+        """
+        # Print summary information.
+        cur = self.con.cursor()
+
+        cmd = """
+        SELECT COUNT()
+          FROM tracks
+        """
+        print(cur.execute(cmd).fetchone()[0], "tracks")
+
+        cmd = """
+        SELECT COUNT()
+          FROM albums
+        """
+        print(cur.execute(cmd).fetchone()[0], "albums")
+
+        cmd = """
+        SELECT COUNT()
+          FROM artists
+        """
+        print(cur.execute(cmd).fetchone()[0], "artists")

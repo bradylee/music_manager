@@ -324,3 +324,46 @@ def test_upgrade_tables(tmp_path):
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
     rows = cur.execute("SELECT * FROM version").fetchall()
     assert rows == [(1,1,0)]
+
+def test_print_summary(tmp_path, capsys):
+    """
+    Test `print_summary` by inserting data into a new database.
+    """
+    # Create a new temporary database.
+    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db.create_tables()
+    cur = db.con.cursor()
+
+    # Create and insert example data.
+    artists = [
+        ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
+        ("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
+    ]
+    cur.executemany("INSERT INTO artists(id, name) VALUES (?, ?)", artists)
+
+    albums = [
+        ("1GLmxzF8g5p0fcdAatGq5Y", "Fractured", "7z9n8Q0icbgvXqx1RWoGrd"),
+        ("1GLmxzF8g5p0fcdAatGq5Y2", "Fractured 2", "7z9n8Q0icbgvXqx1RWoGrd"),
+        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU"),
+        ("0a40snAsSiU0fSBrba93YB2", "World Demise 2", "7bDLHytU8vohbiWbePGrRU"),
+    ]
+    cur.executemany("INSERT INTO albums(id, name, artist) VALUES (?, ?, ?)", albums)
+
+    tracks = [
+        ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y"),
+        ("15eQh5ZLBoMReY20MDG37T2", "Breathless 2", "1GLmxzF8g5p0fcdAatGq5Y"),
+        ("15eQh5ZLBoMReY20MDG37T3", "Breathless 3", "1GLmxzF8g5p0fcdAatGq5Y2"),
+        ("15eQh5ZLBoMReY20MDG37T4", "Breathless 4", "1GLmxzF8g5p0fcdAatGq5Y2"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q2", "Choke 2", "0a40snAsSiU0fSBrba93YB"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q3", "Choke 3", "0a40snAsSiU0fSBrba93YB2"),
+        ("2GDX9DpZgXsLAkXhHBQU1Q4", "Choke 4", "0a40snAsSiU0fSBrba93YB2"),
+    ]
+    cur.executemany("INSERT INTO tracks(id, name, album) VALUES (?, ?, ?)", tracks)
+
+    # Function under test.
+    db.print_summary()
+
+    # Check the output.
+    captured = capsys.readouterr()
+    assert captured.out == "8 tracks\n4 albums\n2 artists\n"
