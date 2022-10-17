@@ -34,6 +34,7 @@ class SpotifyManager():
         parser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
         subparsers = parser.add_subparsers(help="sub-command help", dest="subparser")
         subparsers.add_parser("init", help="Initialize the database")
+        subparsers.add_parser("upgrade", help="Upgrade the database schema to the latest version")
         subparsers.add_parser("add", help="Add items to the database")
         subparsers.add_parser("show", help="Print database summary information")
         self.parser = parser
@@ -48,7 +49,8 @@ class SpotifyManager():
         # Execute the parsed command.
         if args.subparser == "init":
             self.db.create_tables()
-            self.db.update_tables()
+        elif args.subparser == "upgrade":
+            self.db.upgrade_tables()
         elif args.subparser == "add":
             self.insert_items_from_playlist(args.playlist_id)
         elif args.subparser == "show":

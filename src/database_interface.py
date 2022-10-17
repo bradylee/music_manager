@@ -207,7 +207,7 @@ class DatabaseInterface():
         """
         self.con.execute(cmd)
 
-    def update_tables(self, new_version=None):
+    def upgrade_tables(self, new_version=None):
         """
         Update tables to the given schema version.
         """

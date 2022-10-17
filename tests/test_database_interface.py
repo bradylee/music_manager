@@ -267,9 +267,9 @@ def test_create_table_from_schema(tmp_path):
     rows = cur.execute("SELECT * FROM example").fetchall()
     assert len(rows) == 2
 
-def test_update_tables(tmp_path):
+def test_upgrade_tables(tmp_path):
     """
-    Test `update_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
+    Test `upgrade_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
@@ -300,7 +300,7 @@ def test_update_tables(tmp_path):
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
 
     # Function under test.
-    db.update_tables((1,1,0))
+    db.upgrade_tables((1,1,0))
 
     # Check the tables now include 1.1.0 columns with default values.
     rows = cur.execute("SELECT * FROM tracks").fetchall()
@@ -315,7 +315,7 @@ def test_update_tables(tmp_path):
     assert rows == [(1,1,0)]
 
     # Check that running again does nothing.
-    db.update_tables((1,1,0))
+    db.upgrade_tables((1,1,0))
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
     rows = cur.execute("SELECT * FROM albums").fetchall()
