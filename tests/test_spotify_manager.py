@@ -18,7 +18,8 @@ def test_insert_items_from_playlist(tmp_path):
 
     # Create a new temporary database.
     database_path = tmp_path / "test.db"
-    app = dut.SpotifyManager(database_path, token)
+    app = dut.SpotifyManager(database_path)
+    app.api = SpotifyInterface(token)
     app.db.create_tables()
     cur = app.db.con.cursor()
 

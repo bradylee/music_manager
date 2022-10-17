@@ -11,7 +11,7 @@ class SpotifyManager():
     """
     Application class for the Spotify Manager.
     """
-    def __init__(self, database_path=None, token=''):
+    def __init__(self, database_path=None):
         """
         Initialize the application.
         """
@@ -25,14 +25,47 @@ class SpotifyManager():
         # Open the database connection.
         self.db = DatabaseInterface(database_path)
 
-        # Create the Spotify interface.
-        self.api = SpotifyInterface(token)
+        # The Spotify interface depends on parsing arguments for the token.
+        self.api = None
+
+        # Command line arguments.
+        parser = argparse.ArgumentParser(description="Spotify Manager")
+        parser.add_argument("--token", type=str, help="Spotify access token")
+        parser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
+        subparsers = parser.add_subparsers(help="sub-command help", dest="subparser")
+        subparsers.add_parser("init", help="Initialize the database")
+        subparsers.add_parser("add", help="Add items to the database")
+        subparsers.add_parser("show", help="Print database summary information")
+        self.parser = parser
+
+    def run(self, argv=None):
+        args = self.parser.parse_args(argv)
+
+        # Initialize the Spotify interface if we have a token.
+        if args.token is not None:
+            self.api = SpotifyInterface(args.token)
+
+        # Execute the parsed command.
+        if args.subparser == "init":
+            self.db.create_tables()
+            self.db.update_tables((1,1,0))
+        elif args.subparser == "add":
+            self.insert_items_from_playlist(args.playlist_id)
+        elif args.subparser == "show":
+            self.print_summary()
+        else:
+            # Default to print help.
+            parser.print_help()
 
     def insert_items_from_playlist(self, playlist_id):
         """
         Get tracks from a playlist and insert data from tracks, albums, and artists into the
         respective tables.
         """
+        if self.api is None:
+            logging.error("Spotify interface is not initialized")
+            return
+
         tracks = self.api.get_playlist_items(playlist_id)
 
         if tracks is None:
@@ -72,27 +105,5 @@ class SpotifyManager():
 
 
 if __name__ == "__main__":
-    # Command line arguments.
-    parser = argparse.ArgumentParser(description="Spotify Manager")
-    parser.add_argument("--token", type=str, help="Spotify access token")
-    parser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
-    subparsers = parser.add_subparsers(help="sub-command help", dest="subparser")
-    subparsers.add_parser("init", help="Initialize the database")
-    subparsers.add_parser("add", help="Add items to the database")
-    subparsers.add_parser("show", help="Print database summary information")
-    args = parser.parse_args()
-
-    # Create an application object.
-    app = SpotifyManager(token=args.token)
-
-    # Execute the parsed command.
-    if args.subparser == "init":
-        app.db.create_tables()
-        app.db.update_tables((1,1,0))
-    elif args.subparser == "add":
-        app.insert_items_from_playlist(args.playlist_id)
-    elif args.subparser == "show":
-        app.print_summary()
-    else:
-        # Default to print help.
-        parser.print_help()
+    app = SpotifyManager()
+    app.run()
