@@ -6,8 +6,9 @@ import requests
 import sqlite3
 import sys
 
-from src import schema
+from src import item
 from src.item import Track, Album, Artist
+from src import schema
 
 
 def get_spotify_request_headers(token):
@@ -214,32 +215,6 @@ def insert_artists(con, artists):
     con.commit()
 
 
-def get_album_list(tracks):
-    """
-    Get a list of unique albums from a list of tracks.
-    """
-    albums = []
-    lookup_table = set()
-    for track in tracks:
-        if track.album.id not in lookup_table:
-            lookup_table.add(track.album.id)
-            albums.append(track.album)
-    return albums
-
-
-def get_artist_list(albums):
-    """
-    Get a list of unique artists from a list of albums.
-    """
-    artists = []
-    lookup_table = set()
-    for album in albums:
-        if album.artist.id not in lookup_table:
-            lookup_table.add(album.artist.id)
-            artists.append(album.artist)
-    return artists
-
-
 def insert_items_from_playlist(con, token, playlist_id):
     """
     Get tracks from a playlist and insert data from tracks, albums, and artists into the
@@ -250,8 +225,8 @@ def insert_items_from_playlist(con, token, playlist_id):
     if tracks is None:
         return
 
-    albums = get_album_list(tracks)
-    artists = get_artist_list(albums)
+    albums = item.get_album_list(tracks)
+    artists = item.get_artist_list(albums)
 
     insert_tracks(con, tracks)
     insert_albums(con, albums)
