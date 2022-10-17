@@ -1,7 +1,40 @@
+import pytest
+import sqlite3
+
 from src.item import Track, Album, Artist
 
 from src import database_interface as dut
 
+
+def test_transaction(tmp_path):
+    """
+    Test `transaction` by checking if changes are committed when expected.
+    """
+    # Create a new temporary database.
+    db = dut.DatabaseInterface(tmp_path / "test.db")
+
+    # Throw an exception during a transaction to demonstrate rollback.
+    with pytest.raises(RuntimeError):
+        with db.transaction():
+            db._execute("CREATE TABLE example (a int)")
+            db._execute("INSERT INTO example (a) VALUES (1)")
+            # Normally create adds an implicit COMMIT, so create another table to show that is no
+            # longer the case.
+            db._execute("CREATE TABLE sample (b text)")
+            raise RuntimeError
+
+    # Check that no tables were created.
+    assert db.get_tables() == []
+
+    # Try again without the exception.
+    with db.transaction():
+        db._execute("CREATE TABLE example (a int)")
+        db._execute("INSERT INTO example (a) VALUES (1)")
+
+    # Check the example table was created and data was inserted.
+    cur = db._con.cursor()
+    rows = cur.execute("SELECT * FROM example").fetchall()
+    assert rows == [(1,)]
 
 def test_create_tables(tmp_path):
     """
@@ -80,7 +113,8 @@ def test_insert_tracks(tmp_path):
     cur = db._con.cursor()
 
     # Function under test.
-    db.insert_tracks(tracks)
+    with db.transaction():
+        db.insert_tracks(tracks)
 
     # Select data from the database to check it was inserted correctly.
     cmd = """
@@ -127,7 +161,8 @@ def test_insert_albums(tmp_path):
     cur = db._con.cursor()
 
     # Function under test.
-    db.insert_albums(albums)
+    with db.transaction():
+        db.insert_albums(albums)
 
     # Select data from the database to check it was inserted correctly.
     cmd = """
@@ -162,7 +197,8 @@ def test_insert_artists(tmp_path):
     cur = db._con.cursor()
 
     # Function under test.
-    db.insert_artists(artists)
+    with db.transaction():
+        db.insert_artists(artists)
 
     # Select data from the database to check it was inserted correctly.
     cmd = """
@@ -250,7 +286,8 @@ def test_create_table_from_schema(tmp_path):
     }
 
     # Function under test.
-    db.create_table_from_schema("example", schema)
+    with db.transaction():
+        db.create_table_from_schema("example", schema)
 
     # Insert sample data into the tables.
     data = [
@@ -271,12 +308,10 @@ def test_upgrade_tables(tmp_path):
     """
     Test `upgrade_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
     """
-    # Create a new temporary database.
+    # Create a new temporary database with an old schema.
     db = dut.DatabaseInterface(tmp_path / "test.db")
-    cur = db._con.cursor()
-
-    # Create tables with an older version.
     db.create_tables(version=(1,0,0))
+    cur = db._con.cursor()
 
     # Insert sample data into the tables.
     cmd = """

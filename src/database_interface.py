@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import logging
 from pathlib import Path
 import sqlite3
@@ -21,18 +22,73 @@ class DatabaseInterface():
 
         # Open the connection.
         self.database_path = Path(database_path).expanduser().resolve()
-        self._con = sqlite3.connect(self.database_path)
+        self._con = sqlite3.connect(self.database_path, isolation_level=None)
+
+        # Cursor for interacting with the database.
+        # This is controlled by the `transaction` context.
+        self._active_cursor = None
+
+    def _execute(self, *args, **kwargs):
+        """
+        Execute a command with the active cursor.
+        """
+        # Make sure the cursor is set.
+        if self._active_cursor is None:
+            logging.error("Cannot execute a command outside of a transaction")
+            return None
+
+        return self._active_cursor.execute(*args, **kwargs)
+
+    def _executemany(self, *args, **kwargs):
+        """
+        Execute a parameterized command with the active cursor.
+        """
+        # Make sure the cursor is set.
+        if self._active_cursor is None:
+            logging.error("Cannot execute a parameterized command outside of a transaction")
+            return None
+
+        return self._active_cursor.executemany(*args, **kwargs)
+
+    @contextmanager
+    def transaction(self):
+        """
+        Context to create explicit transactions. This helps keep the database in a known state in
+        the case of exceptions, since some actions are otherwise automatically committed.
+        """
+        self._active_cursor = self._con.cursor()
+        try:
+            # Start a transaction.
+            self._execute("BEGIN")
+            yield
+            # Complete the transaction.
+            self._execute("COMMIT")
+        except Exception as ex:
+            # Undo the changes on failure.
+            self._execute("ROLLBACK")
+            raise ex
+        finally:
+            self._active_cursor.close()
+            self._active_cursor = None
 
     def get_tables(self):
         """
-        Returns a list of existing tables in the database.
+        Returns a list of existing tables in the database sorted by name.
         """
+        # Allow an on-demand cursor as needed, since this logic is read only.
+        if self._active_cursor is not None:
+            cur = self._active_cursor
+        else:
+            cur = self._con.cursor()
+
+        # Select the data.
         cmd = """
-        SELECT name
-          FROM sqlite_master
-         WHERE type='table'
+          SELECT name
+            FROM sqlite_master
+           WHERE type='table'
+        ORDER BY name
         """
-        rows = self._con.execute(cmd).fetchall()
+        rows = cur.execute(cmd).fetchall()
         tables = [row[0] for row in rows]
         return tables
 
@@ -41,69 +97,63 @@ class DatabaseInterface():
         Drop a table if it exists.
         """
         if name in self.get_tables():
-            cur = self._con.cursor()
-            cur.execute(f"DROP TABLE {name}")
-            self._con.commit()
+            self._execute(f"DROP TABLE {name}")
 
     def create_tables(self, version=None, force=False):
         """
         Create tables for storing item information using the latest schema.
         """
-        cur = self._con.cursor()
+        with self.transaction():
 
-        # Default to latest version if one is not given.
-        if version is None:
-            version = DatabaseInterface.get_latest_schema_version()
-        schema = DatabaseInterface.get_schema(version)
+            # Default to latest version if one is not given.
+            if version is None:
+                version = DatabaseInterface.get_latest_schema_version()
+            schema = DatabaseInterface.get_schema(version)
 
-        # Get a list of existing tables.
-        tables = self.get_tables()
+            # Get a list of existing tables.
+            tables = self.get_tables()
 
-        # Drop tables to recreate on force.
-        if force:
-            self.drop_table("tracks")
-            self.drop_table("albums")
-            self.drop_table("artists")
-            self.drop_table("version")
+            # Drop tables to recreate on force.
+            if force:
+                self.drop_table("tracks")
+                self.drop_table("albums")
+                self.drop_table("artists")
+                self.drop_table("version")
 
-        # Create the tracks table.
-        if "tracks" not in tables or force:
-            self.create_table_from_schema("tracks", schema["tracks"])
+            # Create the tracks table.
+            if "tracks" not in tables or force:
+                self.create_table_from_schema("tracks", schema["tracks"])
 
-        # Create the albums table.
-        if "albums" not in tables or force:
-            self.create_table_from_schema("albums", schema["albums"])
+            # Create the albums table.
+            if "albums" not in tables or force:
+                self.create_table_from_schema("albums", schema["albums"])
 
-        # Create the artists table.
-        if "artists" not in tables or force:
-            self.create_table_from_schema("artists", schema["artists"])
+            # Create the artists table.
+            if "artists" not in tables or force:
+                self.create_table_from_schema("artists", schema["artists"])
 
-        # Create a table to track the schema version.
-        if "version" not in tables or force:
-            cmd = """
-            CREATE TABLE version (
-                major int NOT NULL PRIMARY KEY CHECK (major >= 0),
-                minor int NOT NULL CHECK (minor >= 0),
-                patch int NOT NULL CHECK (patch >= 0)
-            )
-            """
-            cur.execute(cmd)
+            # Create a table to track the schema version.
+            if "version" not in tables or force:
+                cmd = """
+                CREATE TABLE version (
+                    major int NOT NULL PRIMARY KEY CHECK (major >= 0),
+                    minor int NOT NULL CHECK (minor >= 0),
+                    patch int NOT NULL CHECK (patch >= 0)
+                )
+                """
+                self._execute(cmd)
 
-            # Set the version.
-            cmd = """
-            INSERT INTO version (major, minor, patch)
-                 VALUES (?, ?, ?)
-            """
-            cur.execute(cmd, version)
-
-        self._con.commit()
+                # Set the version.
+                cmd = """
+                INSERT INTO version (major, minor, patch)
+                     VALUES (?, ?, ?)
+                """
+                self._execute(cmd, version)
 
     def insert_tracks(self, tracks):
         """
         Insert data into the tracks table from a list of Track objects.
         """
-        cur = self._con.cursor()
-
         cmd = """
         INSERT INTO tracks (id, name, album)
              VALUES (?, ?, ?)
@@ -111,16 +161,12 @@ class DatabaseInterface():
                  DO NOTHING
         """
         data = [(track.id, track.name, track.album.id) for track in tracks]
-        cur.executemany(cmd, data)
-
-        self._con.commit()
+        self._executemany(cmd, data)
 
     def insert_albums(self, albums):
         """
         Insert data into the albums table from a list of Album objects.
         """
-        cur = self._con.cursor()
-
         cmd = """
         INSERT INTO albums (id, name, artist)
              VALUES (?, ?, ?)
@@ -128,16 +174,12 @@ class DatabaseInterface():
                  DO NOTHING
         """
         data = [(album.id, album.name, album.artist.id) for album in albums]
-        cur.executemany(cmd, data)
-
-        self._con.commit()
+        self._executemany(cmd, data)
 
     def insert_artists(self, artists):
         """
         Insert data into the artists table from a list of Artist objects.
         """
-        cur = self._con.cursor()
-
         cmd = """
         INSERT INTO artists (id, name)
              VALUES (?, ?)
@@ -145,9 +187,7 @@ class DatabaseInterface():
                  DO NOTHING
         """
         data = [(artist.id, artist.name) for artist in artists]
-        cur.executemany(cmd, data)
-
-        self._con.commit()
+        self._executemany(cmd, data)
 
     @staticmethod
     def semantic_version_to_tuple(string):
@@ -205,7 +245,7 @@ class DatabaseInterface():
             {','.join(parameters)}
         )
         """
-        self._con.execute(cmd)
+        self._execute(cmd)
 
     def upgrade_tables(self, new_version=None):
         """
@@ -224,64 +264,60 @@ class DatabaseInterface():
         if new_version is None:
             new_version = DatabaseInterface.get_latest_schema_version()
 
-        # Get current schema version.
-        cur = self._con.cursor()
-        if "version" in existing_tables:
-            current_version = cur.execute("SELECT * FROM version").fetchone()
-        else:
-            # Assume the oldest version if the version table does not exist.
-            current_version = (1,0,0)
+        with self.transaction():
 
-        # Quit if there is nothing to update.
-        if new_version == current_version:
-            return
+            # Get current schema version.
+            if "version" in existing_tables:
+                current_version = self._execute("SELECT * FROM version").fetchone()
+            else:
+                # Assume the oldest version if the version table does not exist.
+                current_version = (1,0,0)
 
-        # Add new columns to the item tables.
-        current_schema = DatabaseInterface.get_schema(current_version)
-        new_schema = DatabaseInterface.get_schema(new_version)
-        for table in item_tables:
-            for column in new_schema[table].keys():
-                if column in current_schema[table]:
-                    continue
-                definition = new_schema[table][column]
-                cmd = f"""
-                ALTER TABLE {table}
-                        ADD {column} {definition}
-                """
-                cur.execute(cmd)
+            # Quit if there is nothing to update.
+            if new_version == current_version:
+                return
 
-        # Update the version.
-        cmd = """
-        UPDATE version
-           SET major = ?,
-               minor = ?,
-               patch = ?
-        """
-        cur.execute(cmd, new_version)
+            # Add new columns to the item tables.
+            current_schema = DatabaseInterface.get_schema(current_version)
+            new_schema = DatabaseInterface.get_schema(new_version)
+            for table in item_tables:
+                for column in new_schema[table].keys():
+                    if column in current_schema[table]:
+                        continue
+                    definition = new_schema[table][column]
+                    cmd = f"""
+                    ALTER TABLE {table}
+                            ADD {column} {definition}
+                    """
+                    self._execute(cmd)
 
-        self._con.commit()
+            # Update the version.
+            cmd = """
+            UPDATE version
+               SET major = ?,
+                   minor = ?,
+                   patch = ?
+            """
+            self._execute(cmd, new_version)
 
     def print_summary(self):
         """
         Print database summary information.
         """
-        # Print summary information.
-        cur = self._con.cursor()
-
         cmd = """
         SELECT COUNT()
           FROM tracks
         """
-        print(cur.execute(cmd).fetchone()[0], "tracks")
+        print(self._con.execute(cmd).fetchone()[0], "tracks")
 
         cmd = """
         SELECT COUNT()
           FROM albums
         """
-        print(cur.execute(cmd).fetchone()[0], "albums")
+        print(self._con.execute(cmd).fetchone()[0], "albums")
 
         cmd = """
         SELECT COUNT()
           FROM artists
         """
-        print(cur.execute(cmd).fetchone()[0], "artists")
+        print(self._con.execute(cmd).fetchone()[0], "artists")

@@ -74,9 +74,10 @@ class SpotifyManager():
         albums = item.get_album_list(tracks)
         artists = item.get_artist_list(albums)
 
-        self.db.insert_tracks(tracks)
-        self.db.insert_albums(albums)
-        self.db.insert_artists(artists)
+        with self.db.transaction():
+            self.db.insert_tracks(tracks)
+            self.db.insert_albums(albums)
+            self.db.insert_artists(artists)
 
 
 if __name__ == "__main__":
