@@ -9,7 +9,7 @@ def test_create_tables(tmp_path):
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Function under test.
     db.create_tables()
@@ -77,7 +77,7 @@ def test_insert_tracks(tmp_path):
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
     db.create_tables()
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Function under test.
     db.insert_tracks(tracks)
@@ -124,7 +124,7 @@ def test_insert_albums(tmp_path):
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
     db.create_tables()
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Function under test.
     db.insert_albums(albums)
@@ -159,7 +159,7 @@ def test_insert_artists(tmp_path):
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
     db.create_tables()
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Function under test.
     db.insert_artists(artists)
@@ -241,7 +241,7 @@ def test_create_table_from_schema(tmp_path):
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Example schema.
     schema = {
@@ -273,7 +273,7 @@ def test_upgrade_tables(tmp_path):
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Create tables with an older version.
     db.create_tables(version=(1,0,0))
@@ -332,7 +332,7 @@ def test_print_summary(tmp_path, capsys):
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
     db.create_tables()
-    cur = db.con.cursor()
+    cur = db._con.cursor()
 
     # Create and insert example data.
     artists = [

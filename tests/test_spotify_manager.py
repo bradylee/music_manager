@@ -21,7 +21,7 @@ def test_insert_items_from_playlist(tmp_path):
     app = dut.SpotifyManager(database_path)
     app.api = SpotifyInterface(token)
     app.db.create_tables()
-    cur = app.db.con.cursor()
+    cur = app.db._con.cursor()
 
     # Mock response data.
     response_data = {

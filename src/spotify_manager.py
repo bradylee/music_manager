@@ -22,7 +22,7 @@ class SpotifyManager():
             datefmt="%Y-%m-%d %H:%M:%S"
         )
 
-        # Open the database connection.
+        # Create the database interface. This opens a database connection automatically.
         self.db = DatabaseInterface(database_path)
 
         # The Spotify interface depends on parsing arguments for the token.

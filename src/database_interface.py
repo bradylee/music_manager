@@ -21,7 +21,7 @@ class DatabaseInterface():
 
         # Open the connection.
         self.database_path = Path(database_path).expanduser().resolve()
-        self.con = sqlite3.connect(self.database_path)
+        self._con = sqlite3.connect(self.database_path)
 
     def get_tables(self):
         """
@@ -32,7 +32,7 @@ class DatabaseInterface():
           FROM sqlite_master
          WHERE type='table'
         """
-        rows = self.con.execute(cmd).fetchall()
+        rows = self._con.execute(cmd).fetchall()
         tables = [row[0] for row in rows]
         return tables
 
@@ -41,15 +41,15 @@ class DatabaseInterface():
         Drop a table if it exists.
         """
         if name in self.get_tables():
-            cur = self.con.cursor()
+            cur = self._con.cursor()
             cur.execute(f"DROP TABLE {name}")
-            self.con.commit()
+            self._con.commit()
 
     def create_tables(self, version=None, force=False):
         """
         Create tables for storing item information using the latest schema.
         """
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         # Default to latest version if one is not given.
         if version is None:
@@ -96,13 +96,13 @@ class DatabaseInterface():
             """
             cur.execute(cmd, version)
 
-        self.con.commit()
+        self._con.commit()
 
     def insert_tracks(self, tracks):
         """
         Insert data into the tracks table from a list of Track objects.
         """
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         cmd = """
         INSERT INTO tracks (id, name, album)
@@ -113,13 +113,13 @@ class DatabaseInterface():
         data = [(track.id, track.name, track.album.id) for track in tracks]
         cur.executemany(cmd, data)
 
-        self.con.commit()
+        self._con.commit()
 
     def insert_albums(self, albums):
         """
         Insert data into the albums table from a list of Album objects.
         """
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         cmd = """
         INSERT INTO albums (id, name, artist)
@@ -130,13 +130,13 @@ class DatabaseInterface():
         data = [(album.id, album.name, album.artist.id) for album in albums]
         cur.executemany(cmd, data)
 
-        self.con.commit()
+        self._con.commit()
 
     def insert_artists(self, artists):
         """
         Insert data into the artists table from a list of Artist objects.
         """
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         cmd = """
         INSERT INTO artists (id, name)
@@ -147,7 +147,7 @@ class DatabaseInterface():
         data = [(artist.id, artist.name) for artist in artists]
         cur.executemany(cmd, data)
 
-        self.con.commit()
+        self._con.commit()
 
     @staticmethod
     def semantic_version_to_tuple(string):
@@ -205,7 +205,7 @@ class DatabaseInterface():
             {','.join(parameters)}
         )
         """
-        self.con.execute(cmd)
+        self._con.execute(cmd)
 
     def upgrade_tables(self, new_version=None):
         """
@@ -225,7 +225,7 @@ class DatabaseInterface():
             new_version = DatabaseInterface.get_latest_schema_version()
 
         # Get current schema version.
-        cur = self.con.cursor()
+        cur = self._con.cursor()
         if "version" in existing_tables:
             current_version = cur.execute("SELECT * FROM version").fetchone()
         else:
@@ -259,14 +259,14 @@ class DatabaseInterface():
         """
         cur.execute(cmd, new_version)
 
-        self.con.commit()
+        self._con.commit()
 
     def print_summary(self):
         """
         Print database summary information.
         """
         # Print summary information.
-        cur = self.con.cursor()
+        cur = self._con.cursor()
 
         cmd = """
         SELECT COUNT()
