@@ -48,7 +48,7 @@ class SpotifyManager():
         # Execute the parsed command.
         if args.subparser == "init":
             self.db.create_tables()
-            self.db.update_tables((1,1,0))
+            self.db.update_tables()
         elif args.subparser == "add":
             self.insert_items_from_playlist(args.playlist_id)
         elif args.subparser == "show":

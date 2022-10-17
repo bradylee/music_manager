@@ -207,7 +207,7 @@ class DatabaseInterface():
         """
         self.con.execute(cmd)
 
-    def update_tables(self, new_version):
+    def update_tables(self, new_version=None):
         """
         Update tables to the given schema version.
         """
@@ -219,6 +219,10 @@ class DatabaseInterface():
             if table not in existing_tables:
                 logging.error(f"Cannot update tables because {table} does not exist")
                 return
+
+        # Default to the latest version.
+        if new_version is None:
+            new_version = DatabaseInterface.get_latest_schema_version()
 
         # Get current schema version.
         cur = self.con.cursor()
