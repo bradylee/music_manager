@@ -298,3 +298,77 @@ def test_fetch_artist_albums():
 
         assert api.fetch_artist_albums(artist_id) is None
         assert mock.call_count == 1
+
+def test_fetch_album_tracks():
+    """
+    Test `fetch_album_tracks` by mocking the request and checking the response.
+    """
+    # Set arbitrary values since the request is mocked.
+    token = "sample"
+    api = dut.SpotifyInterface(token)
+    album_id = "1B5sG6YCOqglv5djSYqp0X"
+    endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+
+    # Fixed response.
+    response_data = {
+        "id": "1B5sG6YCOqglv5djSYqp0X",
+        "name": "The Beginning of the End",
+        "tracks": {
+            "items": [
+                {
+                    "explicit": False,
+                    "id": "55Ps7eQ0IpSypn32TH6uCi",
+                    "is_playable": True,
+                    "name": "The Beginning"
+                },
+                {
+                    "explicit": False,
+                    "id": "5xyv86cHra90CtItbROxdl",
+                    "is_playable": True,
+                    "name": "Auctioneer of Depravity"
+                },
+                {
+                    "explicit": False,
+                    "id": "4tiUaYEcc20fVSluB31T0y",
+                    "is_playable": True,
+                    "name": "The Depopulation Programme"
+                }
+            ],
+            "total": 3
+        }
+    }
+
+    # Test that a good response results in a list of tracks.
+    with requests_mock.mock() as mock:
+        status_code = 200
+        mock.get(endpoint, json=response_data, status_code=status_code)
+        tracks = api.fetch_album_tracks(album_id)
+
+        assert len(tracks) == 3
+        assert mock.call_count == 1
+
+        assert tracks[0].id == "55Ps7eQ0IpSypn32TH6uCi"
+        assert tracks[0].name == "The Beginning"
+        assert tracks[0].album.id == "1B5sG6YCOqglv5djSYqp0X"
+        assert tracks[0].album.name == "The Beginning of the End"
+        assert tracks[0].album.artist is None
+
+        assert tracks[1].id == "5xyv86cHra90CtItbROxdl"
+        assert tracks[1].name == "Auctioneer of Depravity"
+        assert tracks[1].album.id == "1B5sG6YCOqglv5djSYqp0X"
+        assert tracks[1].album.name == "The Beginning of the End"
+        assert tracks[1].album.artist is None
+
+        assert tracks[2].id == "4tiUaYEcc20fVSluB31T0y"
+        assert tracks[2].name == "The Depopulation Programme"
+        assert tracks[2].album.id == "1B5sG6YCOqglv5djSYqp0X"
+        assert tracks[2].album.name == "The Beginning of the End"
+        assert tracks[2].album.artist is None
+
+    # Test that a bad response results in None.
+    with requests_mock.mock() as mock:
+        status_code = 400
+        mock.get(endpoint, json=response_data, status_code=status_code)
+
+        assert api.fetch_album_tracks(album_id) is None
+        assert mock.call_count == 1

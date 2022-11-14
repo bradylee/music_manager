@@ -149,3 +149,58 @@ class SpotifyInterface():
                 albums.append(album)
 
         return albums
+
+    def fetch_album_tracks(self, album_id):
+        """
+        Request all tracks for a Spotify album.
+        Returns a list of Track objects.
+        """
+        tracks = []
+
+        # API endpoint to get tracks from an album.
+        endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+
+        market = "US"
+        offset = 0
+
+        # We get the total number of tracks and the album name from the first response.
+        total = None
+        album_name = None
+
+        # This endpoint should return all tracks with a single request. It does not have inputs for
+        # offset or limit.
+        params = {
+            "market": market,
+        }
+
+        # Execute the GET request.
+        headers = self.get_request_headers()
+        response = requests.get(
+            endpoint,
+            headers=headers,
+            params=params
+        )
+
+        if response.status_code != 200:
+            logging.error(f"Request responded with status {response.status_code}")
+            return None
+
+        data = response.json()
+
+        # Parse album data.
+        assert album_id == data["id"]
+        album_name = data["name"]
+
+        # Parse track data.
+        track_data = data["tracks"]
+
+        total = track_data["total"]
+        logging.debug(f"Album has {total} tracks")
+
+        # Create the track list.
+        for track in track_data["items"]:
+            album = Album(album_id, album_name)
+            track = Track(track["id"], track["name"], album=album)
+            tracks.append(track)
+
+        return tracks
