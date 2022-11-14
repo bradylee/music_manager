@@ -82,3 +82,70 @@ class SpotifyInterface():
                 tracks.append(track)
 
         return tracks
+
+    def fetch_artist_albums(self, artist_id, limit=50):
+        """
+        Request all albums for a Spotify artist.
+        Returns a list of Album objects.
+        """
+        albums = []
+
+        # API endpoint to get albums from an artist.
+        endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+
+        market = "US"
+        offset = 0
+
+        # TODO: Include all groups. This requires re-checking the artist on each album due to
+        # features and compilations.
+        include_groups = "album,single"
+
+        # We get the total number of albums and the artist name from the first response.
+        total = None
+        artist_name = None
+
+        # Iterate requests until we get all albums.
+        while total is None or offset < total:
+            params = {
+                "market": market,
+                "limit": limit,
+                "offset": offset,
+                "include_groups": include_groups,
+            }
+            offset += limit
+
+            # Execute the GET request.
+            headers = self.get_request_headers()
+            response = requests.get(
+                endpoint,
+                headers=headers,
+                params=params
+            )
+
+            if response.status_code != 200:
+                logging.error(f"Request responded with status {response.status_code}")
+                return None
+
+            data = response.json()
+
+            if total is None:
+                total = data["total"]
+                logging.debug(f"Artist has {total} albums")
+
+            # Parse the data to create a track list.
+            for item in data["items"]:
+                album_id = item["id"]
+                album_name = item["name"]
+
+                # Get the artist name.
+                if artist_name is None:
+                    for artist in item["artists"]:
+                        if artist["id"] == artist_id:
+                            artist_name = artist["name"]
+
+                # Create objects.
+                artist = Artist(artist_id, artist_name)
+                album = Album(album_id, album_name, artist=artist)
+                albums.append(album)
+
+        return albums
