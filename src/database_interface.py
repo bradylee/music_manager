@@ -18,7 +18,7 @@ class DatabaseInterface():
         """
         # Use the default path if one is not given.
         if database_path is None:
-            database_path = "~/.spotify_manager.db"
+            database_path = "~/.music_manager.db"
 
         # Open the connection.
         self.database_path = Path(database_path).expanduser().resolve()

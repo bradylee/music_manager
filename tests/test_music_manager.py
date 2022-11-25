@@ -4,7 +4,7 @@ from src import database_interface
 from src.item import Track, Album, Artist
 from src.spotify_interface import SpotifyInterface
 
-from src import spotify_manager as dut
+from src import music_manager as dut
 
 
 def test_insert_items_from_playlist(tmp_path):
