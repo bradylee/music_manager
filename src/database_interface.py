@@ -4,7 +4,6 @@ from pathlib import Path
 import sqlite3
 
 from src import schema
-from src.item import Track, Album, Artist
 
 
 class DatabaseInterface:

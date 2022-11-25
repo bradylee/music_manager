@@ -3,7 +3,6 @@ import logging
 
 from src.database_interface import DatabaseInterface
 from src import item
-from src.item import Track, Album, Artist
 from src.spotify_interface import SpotifyInterface
 
 
@@ -67,7 +66,7 @@ class SpotifyManager:
             self.db.print_summary()
         else:
             # Default to print help.
-            parser.print_help()
+            self.parser.print_help()
 
     def insert_items_from_playlist(self, playlist_id):
         """

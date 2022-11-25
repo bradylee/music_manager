@@ -1,5 +1,4 @@
 import pytest
-import sqlite3
 
 from src.item import Track, Album, Artist
 

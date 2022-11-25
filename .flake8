@@ -1,0 +1,8 @@
+[flake8]
+
+# Disable E203 to comply with Black and PEP8.
+# Disable E501 to let Black manage the line length.
+# Let Black handle the line length.
+extend-ignore = E203,E501
+
+exclude = .git,venv,__pycache__

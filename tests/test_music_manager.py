@@ -1,7 +1,5 @@
 import requests_mock
 
-from src import database_interface
-from src.item import Track, Album, Artist
 from src.spotify_interface import SpotifyInterface
 
 from src import music_manager as dut

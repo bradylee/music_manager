@@ -1,4 +1,3 @@
-import json
 import logging
 import requests
 
@@ -153,7 +152,6 @@ class SpotifyInterface:
         endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
 
         market = "US"
-        offset = 0
 
         # We get the total number of tracks and the album name from the first response.
         total = None
