@@ -445,3 +445,47 @@ class DatabaseInterface:
         )
 
         print(summary, end="")
+
+    def create_playlist(self, limit=200):
+        """
+        Create a table to represent a playlist for testing tracks.
+        """
+        # Input validation.
+        if not isinstance(limit, int):
+            logging.error("Limit must be an integer")
+
+        with self.transaction():
+            # Delete any old data.
+            self.drop_table("playlist")
+
+            # Create the table.
+            cmd = """
+            CREATE TABLE playlist (
+                number int NOT NULL CHECK (number >= 1) PRIMARY KEY,
+                id text NOT NULL
+            )
+            """
+            self._execute(cmd)
+
+            # Populate the table.
+            cmd = f"""
+            WITH eligible_tracks AS (
+                SELECT id
+                  FROM tracks
+                 WHERE num_times_rated = 0
+            )
+            INSERT INTO playlist (number, id)
+                 SELECT RANK() OVER(ORDER BY RANDOM()),
+                        id
+                   FROM eligible_tracks
+                  LIMIT {limit}
+            """
+            self._execute(cmd)
+
+        # Print for the user to copy and paste into Spotify.
+        cmd = """
+        SELECT id FROM playlist
+        ORDER BY number ASC
+        """
+        for row in self._con.execute(cmd):
+            print(f"https://open.spotify.com/track/{row[0]}")

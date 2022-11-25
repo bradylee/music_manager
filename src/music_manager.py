@@ -64,6 +64,7 @@ class SpotifyManager:
             "--token", type=str, required=True, help="Spotify access token"
         )
         subparsers.add_parser("show", help="Print database summary information")
+        subparsers.add_parser("create", help="Create a playlist for testing tracks")
         self.parser = parser
 
     def run(self, argv=None):
@@ -83,6 +84,8 @@ class SpotifyManager:
             self.fetch_tracks()
         elif args.subparser == "show":
             self.db.print_summary()
+        elif args.subparser == "create":
+            self.db.create_playlist()
         else:
             # Default to print help.
             self.parser.print_help()
