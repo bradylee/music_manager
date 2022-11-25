@@ -7,7 +7,7 @@ from src import schema
 from src.item import Track, Album, Artist
 
 
-class DatabaseInterface():
+class DatabaseInterface:
     """
     Class to interface with the database in Spotify Manager.
     """
@@ -45,7 +45,9 @@ class DatabaseInterface():
         """
         # Make sure the cursor is set.
         if self._active_cursor is None:
-            logging.error("Cannot execute a parameterized command outside of a transaction")
+            logging.error(
+                "Cannot execute a parameterized command outside of a transaction"
+            )
             return None
 
         return self._active_cursor.executemany(*args, **kwargs)
@@ -197,7 +199,7 @@ class DatabaseInterface():
         This assumes a string of the format "MAJOR.MINOR.PATCH".
         Semantic version extensions are not supported.
         """
-        parts = string.split('.')
+        parts = string.split(".")
         # Convert each part to an integer.
         version = [int(part) for part in parts]
         return tuple(version)
@@ -209,7 +211,7 @@ class DatabaseInterface():
         """
         # Convert each part of the tuple to a string.
         parts = [str(part) for part in version]
-        return '.'.join(parts)
+        return ".".join(parts)
 
     @staticmethod
     def get_latest_schema_version(schemas=None):
@@ -221,7 +223,9 @@ class DatabaseInterface():
 
         # We use semantic versioning with no extensions, so we can simply sort after parsing to get
         # the latest version.
-        versions = [DatabaseInterface.semantic_version_to_tuple(key) for key in schemas.keys()]
+        versions = [
+            DatabaseInterface.semantic_version_to_tuple(key) for key in schemas.keys()
+        ]
         return sorted(versions)[-1]
 
     @staticmethod
@@ -271,7 +275,7 @@ class DatabaseInterface():
                 current_version = self._execute("SELECT * FROM version").fetchone()
             else:
                 # Assume the oldest version if the version table does not exist.
-                current_version = (1,0,0)
+                current_version = (1, 0, 0)
 
             # Quit if there is nothing to update.
             if new_version == current_version:

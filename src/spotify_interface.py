@@ -5,7 +5,7 @@ import requests
 from src.item import Track, Album, Artist
 
 
-class SpotifyInterface():
+class SpotifyInterface:
     """
     Class to interface with the Spotify API in Spotify Manager.
     """
@@ -52,11 +52,7 @@ class SpotifyInterface():
 
             # Execute the GET request.
             headers = self.get_request_headers()
-            response = requests.get(
-                endpoint,
-                headers=headers,
-                params=params
-            )
+            response = requests.get(endpoint, headers=headers, params=params)
 
             if response.status_code != 200:
                 logging.error(f"Request responded with status {response.status_code}")
@@ -116,11 +112,7 @@ class SpotifyInterface():
 
             # Execute the GET request.
             headers = self.get_request_headers()
-            response = requests.get(
-                endpoint,
-                headers=headers,
-                params=params
-            )
+            response = requests.get(endpoint, headers=headers, params=params)
 
             if response.status_code != 200:
                 logging.error(f"Request responded with status {response.status_code}")
@@ -175,11 +167,7 @@ class SpotifyInterface():
 
         # Execute the GET request.
         headers = self.get_request_headers()
-        response = requests.get(
-            endpoint,
-            headers=headers,
-            params=params
-        )
+        response = requests.get(endpoint, headers=headers, params=params)
 
         if response.status_code != 200:
             logging.error(f"Request responded with status {response.status_code}")

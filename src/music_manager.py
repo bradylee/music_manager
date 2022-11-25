@@ -7,10 +7,11 @@ from src.item import Track, Album, Artist
 from src.spotify_interface import SpotifyInterface
 
 
-class SpotifyManager():
+class SpotifyManager:
     """
     Application class for the Spotify Manager.
     """
+
     def __init__(self, database_path=None):
         """
         Initialize the application.
@@ -19,7 +20,7 @@ class SpotifyManager():
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
         # Create the database interface. This opens a database connection automatically.
@@ -32,11 +33,22 @@ class SpotifyManager():
         parser = argparse.ArgumentParser(description="Spotify Manager")
         subparsers = parser.add_subparsers(help="sub-command help", dest="subparser")
         subparser = subparsers.add_parser("init", help="Initialize the database")
-        subparser.add_argument("--force", "-f", action="store_true", help="Set to drop and re-create any existing tables")
-        subparsers.add_parser("upgrade", help="Upgrade the database schema to the latest version")
+        subparser.add_argument(
+            "--force",
+            "-f",
+            action="store_true",
+            help="Set to drop and re-create any existing tables",
+        )
+        subparsers.add_parser(
+            "upgrade", help="Upgrade the database schema to the latest version"
+        )
         subparser = subparsers.add_parser("add", help="Add items to the database")
         subparser.add_argument("--token", type=str, help="Spotify access token")
-        subparser.add_argument("--playlist-id", type=str, help="Spotify ID of the playlist from which to fetch tracks")
+        subparser.add_argument(
+            "--playlist-id",
+            type=str,
+            help="Spotify ID of the playlist from which to fetch tracks",
+        )
         subparsers.add_parser("show", help="Print database summary information")
         self.parser = parser
 

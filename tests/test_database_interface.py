@@ -36,6 +36,7 @@ def test_transaction(tmp_path):
     rows = cur.execute("SELECT * FROM example").fetchall()
     assert rows == [(1,)]
 
+
 def test_create_tables(tmp_path):
     """
     Test `create_tables` by inserting and selecting data.
@@ -84,6 +85,7 @@ def test_create_tables(tmp_path):
     version = dut.DatabaseInterface.get_latest_schema_version()
     assert rows == [version]
 
+
 def test_insert_tracks(tmp_path):
     """
     Test `insert_tracks` by selecting data and comparing it to the input.
@@ -93,17 +95,17 @@ def test_insert_tracks(tmp_path):
         Track(
             "6bsxDgpU5nlcHNZYtsfZG8",
             "Bleeding Sun",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun")
+            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
         ),
         Track(
             "15eQh5ZLBoMReY20MDG37T",
             "Breathless",
-            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured")
+            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured"),
         ),
         Track(
             "2GDX9DpZgXsLAkXhHBQU1Q",
             "Choke",
-            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise")
+            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise"),
         ),
     ]
 
@@ -128,9 +130,14 @@ def test_insert_tracks(tmp_path):
 
     assert len(rows) == 3
 
-    assert rows[0] == ("6bsxDgpU5nlcHNZYtsfZG8", "Bleeding Sun", "7hkhFnClNPmRXL20KqdzSO")
+    assert rows[0] == (
+        "6bsxDgpU5nlcHNZYtsfZG8",
+        "Bleeding Sun",
+        "7hkhFnClNPmRXL20KqdzSO",
+    )
     assert rows[1] == ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y")
     assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")
+
 
 def test_insert_albums(tmp_path):
     """
@@ -141,17 +148,17 @@ def test_insert_albums(tmp_path):
         Album(
             "7hkhFnClNPmRXL20KqdzSO",
             "Bleeding Sun",
-            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
+            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin"),
         ),
         Album(
             "1GLmxzF8g5p0fcdAatGq5Y",
             "Fractured",
-            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
+            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
         ),
         Album(
             "0a40snAsSiU0fSBrba93YB",
             "World Demise",
-            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier")
+            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
         ),
     ]
 
@@ -176,9 +183,18 @@ def test_insert_albums(tmp_path):
 
     assert len(rows) == 3
 
-    assert rows[0] == ("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun", "4UgQ3EFa8fEeaIEg54uV5b")
+    assert rows[0] == (
+        "7hkhFnClNPmRXL20KqdzSO",
+        "Bleeding Sun",
+        "4UgQ3EFa8fEeaIEg54uV5b",
+    )
     assert rows[1] == ("1GLmxzF8g5p0fcdAatGq5Y", "Fractured", "7z9n8Q0icbgvXqx1RWoGrd")
-    assert rows[2] == ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
+    assert rows[2] == (
+        "0a40snAsSiU0fSBrba93YB",
+        "World Demise",
+        "7bDLHytU8vohbiWbePGrRU",
+    )
+
 
 def test_insert_artists(tmp_path):
     """
@@ -215,6 +231,7 @@ def test_insert_artists(tmp_path):
     assert rows[1] == ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
     assert rows[2] == ("7bDLHytU8vohbiWbePGrRU", "Falsifier")
 
+
 def test_semantic_version_to_tuple():
     """
     Test `semantic_version_to_tuple` with example data.
@@ -222,6 +239,7 @@ def test_semantic_version_to_tuple():
     assert dut.DatabaseInterface.semantic_version_to_tuple("1.0.0") == (1, 0, 0)
     assert dut.DatabaseInterface.semantic_version_to_tuple("10.0.1") == (10, 0, 1)
     assert dut.DatabaseInterface.semantic_version_to_tuple("2.10.100") == (2, 10, 100)
+
 
 def test_tuple_to_semantic_version():
     """
@@ -231,19 +249,21 @@ def test_tuple_to_semantic_version():
     assert dut.DatabaseInterface.tuple_to_semantic_version((10, 0, 1)) == "10.0.1"
     assert dut.DatabaseInterface.tuple_to_semantic_version((2, 10, 100)) == "2.10.100"
 
+
 def test_get_latest_schema_version():
     """
     Test `get_latest_schema_version` with a mock schemas lookup.
     """
     # Create versions to confirm that they are sorted numerically and not by ASCII.
     schemas = {
-        "1.0.0": 'a',
-        "10.10.0": 'b',
-        "10.0.0": 'c',
-        "2.0.10": 'd',
+        "1.0.0": "a",
+        "10.10.0": "b",
+        "10.0.0": "c",
+        "2.0.10": "d",
     }
 
     assert dut.DatabaseInterface.get_latest_schema_version(schemas) == (10, 10, 0)
+
 
 def test_get_schema():
     """
@@ -251,7 +271,7 @@ def test_get_schema():
     """
 
     # Check the value for a real version.
-    assert dut.DatabaseInterface.get_schema((1,0,0)) == {
+    assert dut.DatabaseInterface.get_schema((1, 0, 0)) == {
         "tracks": {
             "id": "text NOT NULL PRIMARY KEY",
             "name": "text NOT NULL",
@@ -269,7 +289,8 @@ def test_get_schema():
     }
 
     # Check the value for a fake version.
-    assert dut.DatabaseInterface.get_schema((0,0,0)) is None
+    assert dut.DatabaseInterface.get_schema((0, 0, 0)) is None
+
 
 def test_create_table_from_schema(tmp_path):
     """
@@ -304,13 +325,14 @@ def test_create_table_from_schema(tmp_path):
     rows = cur.execute("SELECT * FROM example").fetchall()
     assert len(rows) == 2
 
+
 def test_upgrade_tables(tmp_path):
     """
     Test `upgrade_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
     """
     # Create a new temporary database with an old schema.
     db = dut.DatabaseInterface(tmp_path / "test.db")
-    db.create_tables(version=(1,0,0))
+    db.create_tables(version=(1, 0, 0))
     cur = db._con.cursor()
 
     # Insert sample data into the tables.
@@ -330,35 +352,42 @@ def test_upgrade_tables(tmp_path):
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")]
     rows = cur.execute("SELECT * FROM albums").fetchall()
-    assert rows == [("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")]
+    assert rows == [
+        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
+    ]
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
 
     # Function under test.
-    db.upgrade_tables((1,1,0))
+    db.upgrade_tables((1, 1, 0))
 
     # Check the tables now include 1.1.0 columns with default values.
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
     rows = cur.execute("SELECT * FROM albums").fetchall()
-    assert rows == [("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")]
+    assert rows == [
+        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
+    ]
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
 
     # Check the version table shows the updated version.
     rows = cur.execute("SELECT * FROM version").fetchall()
-    assert rows == [(1,1,0)]
+    assert rows == [(1, 1, 0)]
 
     # Check that running again does nothing.
-    db.upgrade_tables((1,1,0))
+    db.upgrade_tables((1, 1, 0))
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
     rows = cur.execute("SELECT * FROM albums").fetchall()
-    assert rows == [("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")]
+    assert rows == [
+        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
+    ]
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
     rows = cur.execute("SELECT * FROM version").fetchall()
-    assert rows == [(1,1,0)]
+    assert rows == [(1, 1, 0)]
+
 
 def test_print_summary(tmp_path, capsys):
     """

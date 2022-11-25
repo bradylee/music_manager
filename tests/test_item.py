@@ -12,22 +12,22 @@ def test_get_album_list():
         Track(
             "6bsxDgpU5nlcHNZYtsfZG8",
             "Bleeding Sun",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun")
+            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
         ),
         Track(
             "6bsxDgpU5nlcHNZYtsfZG82",
             "Bleeding Sun 2",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun")
+            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
         ),
         Track(
             "15eQh5ZLBoMReY20MDG37T",
             "Breathless",
-            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured")
+            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured"),
         ),
         Track(
             "2GDX9DpZgXsLAkXhHBQU1Q",
             "Choke",
-            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise")
+            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise"),
         ),
     ]
 
@@ -45,6 +45,7 @@ def test_get_album_list():
     assert albums[2].id == "0a40snAsSiU0fSBrba93YB"
     assert albums[2].name == "World Demise"
 
+
 def test_get_artist_list():
     """
     Test `get_artist_list` with sample data including duplicates.
@@ -54,22 +55,22 @@ def test_get_artist_list():
         Album(
             "7hkhFnClNPmRXL20KqdzSO",
             "Bleeding Sun",
-            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
+            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin"),
         ),
         Album(
             "1GLmxzF8g5p0fcdAatGq5Y",
             "Fractured",
-            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
+            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
         ),
         Album(
             "1GLmxzF8g5p0fcdAatGq5Y2",
             "Fractured 2",
-            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
+            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
         ),
         Album(
             "0a40snAsSiU0fSBrba93YB",
             "World Demise",
-            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier")
+            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
         ),
     ]
 

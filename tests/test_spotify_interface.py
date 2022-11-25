@@ -23,6 +23,7 @@ def test_get_request_headers():
     headers = api.get_request_headers()
     assert headers["Authorization"] == "Bearer another_sample"
 
+
 def test_get_playlist_items():
     """
     Test `get_playlist_items` by mocking the request and checking the response.
@@ -98,11 +99,11 @@ def test_get_playlist_items():
                     },
                 },
             ],
-            "total": 3
+            "total": 3,
         }
 
         # Slice the items based on the given offset and limit.
-        response_data["items"] = response_data["items"][offset:offset+limit]
+        response_data["items"] = response_data["items"][offset : offset + limit]
         return response_data
 
     # Test that a good response results in a list of tracks.
@@ -173,6 +174,7 @@ def test_get_playlist_items():
         assert api.get_playlist_items(playlist_id) is None
         assert mock.call_count == 1
 
+
 def test_fetch_artist_albums():
     """
     Test `fetch_artist_albums` by mocking the request and checking the response.
@@ -201,46 +203,37 @@ def test_fetch_artist_albums():
             "items": [
                 {
                     "artists": [
-                        {
-                            "id": "0gJ0dOw0r6daBMmJr6ROvQ",
-                            "name": "Abyss Walker"
-                        }
+                        {"id": "0gJ0dOw0r6daBMmJr6ROvQ", "name": "Abyss Walker"}
                     ],
                     "album_type": "single",
                     "id": "55Eath51v7CjEI6Ca2Inev",
                     "name": "Intergalactic (Metal Version)",
-                    "release_date": "2022-05-06"
+                    "release_date": "2022-05-06",
                 },
                 {
                     "artists": [
-                        {
-                            "id": "0gJ0dOw0r6daBMmJr6ROvQ",
-                            "name": "Abyss Walker"
-                        }
+                        {"id": "0gJ0dOw0r6daBMmJr6ROvQ", "name": "Abyss Walker"}
                     ],
                     "album_type": "single",
                     "id": "1PGRRV8bSTwiT66uIlJdQ3",
                     "name": "Ruff Ryder's Anthem (Metal Version)",
-                    "release_date": "2022-04-15"
+                    "release_date": "2022-04-15",
                 },
                 {
                     "artists": [
-                        {
-                            "id": "0gJ0dOw0r6daBMmJr6ROvQ",
-                            "name": "Abyss Walker"
-                        }
+                        {"id": "0gJ0dOw0r6daBMmJr6ROvQ", "name": "Abyss Walker"}
                     ],
                     "album_type": "single",
                     "id": "4vTvDu4oVQmgSTAa9W2y1Z",
                     "name": "Astronaut In The Ocean",
-                    "release_date": "2021-07-15"
-                }
+                    "release_date": "2021-07-15",
+                },
             ],
-            "total": 3
+            "total": 3,
         }
 
         # Slice the items based on the given offset and limit.
-        response_data["items"] = response_data["items"][offset:offset+limit]
+        response_data["items"] = response_data["items"][offset : offset + limit]
         return response_data
 
     # Test that a good response results in a list of albums.
@@ -299,6 +292,7 @@ def test_fetch_artist_albums():
         assert api.fetch_artist_albums(artist_id) is None
         assert mock.call_count == 1
 
+
 def test_fetch_album_tracks():
     """
     Test `fetch_album_tracks` by mocking the request and checking the response.
@@ -319,23 +313,23 @@ def test_fetch_album_tracks():
                     "explicit": False,
                     "id": "55Ps7eQ0IpSypn32TH6uCi",
                     "is_playable": True,
-                    "name": "The Beginning"
+                    "name": "The Beginning",
                 },
                 {
                     "explicit": False,
                     "id": "5xyv86cHra90CtItbROxdl",
                     "is_playable": True,
-                    "name": "Auctioneer of Depravity"
+                    "name": "Auctioneer of Depravity",
                 },
                 {
                     "explicit": False,
                     "id": "4tiUaYEcc20fVSluB31T0y",
                     "is_playable": True,
-                    "name": "The Depopulation Programme"
-                }
+                    "name": "The Depopulation Programme",
+                },
             ],
-            "total": 3
-        }
+            "total": 3,
+        },
     }
 
     # Test that a good response results in a list of tracks.

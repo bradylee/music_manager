@@ -75,7 +75,7 @@ def test_insert_items_from_playlist(tmp_path):
                 },
             },
         ],
-        "total": 3
+        "total": 3,
     }
 
     # Call the function under test with the mocked request.
@@ -96,7 +96,11 @@ def test_insert_items_from_playlist(tmp_path):
 
     assert len(rows) == 3
 
-    assert rows[0] == ("6bsxDgpU5nlcHNZYtsfZG8", "Bleeding Sun", "7hkhFnClNPmRXL20KqdzSO")
+    assert rows[0] == (
+        "6bsxDgpU5nlcHNZYtsfZG8",
+        "Bleeding Sun",
+        "7hkhFnClNPmRXL20KqdzSO",
+    )
     assert rows[1] == ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y")
     assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")
 
@@ -112,9 +116,17 @@ def test_insert_items_from_playlist(tmp_path):
 
     assert len(rows) == 3
 
-    assert rows[0] == ("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun", "4UgQ3EFa8fEeaIEg54uV5b")
+    assert rows[0] == (
+        "7hkhFnClNPmRXL20KqdzSO",
+        "Bleeding Sun",
+        "4UgQ3EFa8fEeaIEg54uV5b",
+    )
     assert rows[1] == ("1GLmxzF8g5p0fcdAatGq5Y", "Fractured", "7z9n8Q0icbgvXqx1RWoGrd")
-    assert rows[2] == ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
+    assert rows[2] == (
+        "0a40snAsSiU0fSBrba93YB",
+        "World Demise",
+        "7bDLHytU8vohbiWbePGrRU",
+    )
 
     # Select and check artist data.
     cmd = """

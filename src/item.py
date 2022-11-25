@@ -2,6 +2,7 @@ class Item:
     """
     Generic class to represent a Spotify item.
     """
+
     def __init__(self, _id, name):
         self.id = _id
         self.name = name
@@ -14,6 +15,7 @@ class Track(Item):
     """
     Represents a track.
     """
+
     def __init__(self, _id, name, album=None):
         super().__init__(_id, name)
         self.album = album
@@ -26,6 +28,7 @@ class Album(Item):
     """
     Represents an album.
     """
+
     def __init__(self, _id, name, artist=None):
         super().__init__(_id, name)
         self.artist = artist
@@ -38,6 +41,7 @@ class Artist(Item):
     """
     Represents an artist.
     """
+
     def __init__(self, _id, name):
         super().__init__(_id, name)
 
