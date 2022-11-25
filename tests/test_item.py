@@ -1,6 +1,5 @@
-from src.item import Track, Album, Artist
-
 from src import item as dut
+from src.item import Album, Artist, Track
 
 
 def test_get_album_list():

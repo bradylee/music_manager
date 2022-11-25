@@ -1,8 +1,7 @@
 import pytest
 
-from src.item import Track, Album, Artist
-
 from src import database_interface as dut
+from src.item import Album, Artist, Track
 
 
 def test_transaction(tmp_path):

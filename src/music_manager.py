@@ -1,8 +1,8 @@
 import argparse
 import logging
 
-from src.database_interface import DatabaseInterface
 from src import item
+from src.database_interface import DatabaseInterface
 from src.spotify_interface import SpotifyInterface
 
 

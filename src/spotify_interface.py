@@ -1,7 +1,8 @@
 import logging
+
 import requests
 
-from src.item import Track, Album, Artist
+from src.item import Album, Artist, Track
 
 
 class SpotifyInterface:
