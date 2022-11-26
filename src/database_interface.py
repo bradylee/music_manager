@@ -167,13 +167,14 @@ class DatabaseInterface:
         else:
             # Insert the track and set the rating.
             cmd = """
-            INSERT INTO tracks (id, name, album, rating)
-                 VALUES (?, ?, ?, ?)
+            INSERT INTO tracks (id, name, album, rating, num_times_rated)
+                 VALUES (?, ?, ?, ?, ?)
             ON CONFLICT (id)
                      DO UPDATE
-                    SET rating=excluded.rating
+                    SET rating = excluded.rating,
+                        num_times_rated = num_times_rated + 1
             """
-            data = [(track.id, track.name, track.album.id, rating) for track in tracks]
+            data = [(track.id, track.name, track.album.id, rating, 1) for track in tracks]
         self._executemany(cmd, data)
 
     def insert_albums(self, albums):
