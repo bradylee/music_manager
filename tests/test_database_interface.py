@@ -147,7 +147,8 @@ def test_insertTracks(tmp_path):
     cmd = """
       SELECT id,
              name,
-             album
+             album,
+             rating
         FROM tracks
     ORDER BY name
     """
@@ -161,9 +162,98 @@ def test_insertTracks(tmp_path):
         "6bsxDgpU5nlcHNZYtsfZG8",
         "Bleeding Sun",
         "7hkhFnClNPmRXL20KqdzSO",
+        0,
     )
-    assert rows[1] == ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y")
-    assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")
+    assert rows[1] == (
+        "15eQh5ZLBoMReY20MDG37T",
+        "Breathless",
+        "1GLmxzF8g5p0fcdAatGq5Y",
+        0,
+    )
+    assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0)
+
+
+def test_insertTracks_rated(tmp_path):
+    """
+    Test `insert_tracks` can optionally set the rating.
+    """
+    # Input data.
+    tracks = [
+        Track(
+            "6bsxDgpU5nlcHNZYtsfZG8",
+            "Bleeding Sun",
+            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
+        ),
+        Track(
+            "15eQh5ZLBoMReY20MDG37T",
+            "Breathless",
+            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured"),
+        ),
+        Track(
+            "2GDX9DpZgXsLAkXhHBQU1Q",
+            "Choke",
+            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise"),
+        ),
+    ]
+
+    # Create a new temporary database.
+    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db.create_tables()
+    cur = db._con.cursor()
+
+    # Function under test.
+    with db.transaction():
+        db.insert_tracks(tracks, rating=1)
+
+    # Select data from the database to read it back.
+    cmd = """
+      SELECT id,
+             name,
+             album,
+             rating
+        FROM tracks
+    ORDER BY name
+    """
+    rows = cur.execute(cmd).fetchall()
+
+    # Verify the number of tracks.
+    assert len(rows) == 3
+
+    # Verify the selected data matches the input.
+    assert rows[0] == (
+        "6bsxDgpU5nlcHNZYtsfZG8",
+        "Bleeding Sun",
+        "7hkhFnClNPmRXL20KqdzSO",
+        1,
+    )
+    assert rows[1] == (
+        "15eQh5ZLBoMReY20MDG37T",
+        "Breathless",
+        "1GLmxzF8g5p0fcdAatGq5Y",
+        1,
+    )
+    assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 1)
+
+    # Change the rating.
+    with db.transaction():
+        db.insert_tracks(tracks, rating=-1)
+
+    # Select data from the database to read it back.
+    cmd = """
+      SELECT id,
+             name,
+             album,
+             rating
+        FROM tracks
+    ORDER BY name
+    """
+    rows = cur.execute(cmd).fetchall()
+
+    # Verify the selected data matches the input.
+    # Verify the rating was updated.
+    assert rows[0][-1] == -1
+    assert rows[1][-1] == -1
+    assert rows[2][-1] == -1
 
 
 def test_insertAlbums(tmp_path):

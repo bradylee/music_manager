@@ -151,17 +151,29 @@ class DatabaseInterface:
                 """
                 self._execute(cmd, version)
 
-    def insert_tracks(self, tracks):
+    def insert_tracks(self, tracks, rating=None):
         """
         Insert data into the tracks table from a list of Track objects.
         """
-        cmd = """
-        INSERT INTO tracks (id, name, album)
-             VALUES (?, ?, ?)
-        ON CONFLICT (id)
-                 DO NOTHING
-        """
-        data = [(track.id, track.name, track.album.id) for track in tracks]
+        if rating is None:
+            # Insert the track without setting the rating.
+            cmd = """
+            INSERT INTO tracks (id, name, album)
+                 VALUES (?, ?, ?)
+            ON CONFLICT (id)
+                     DO NOTHING
+            """
+            data = [(track.id, track.name, track.album.id) for track in tracks]
+        else:
+            # Insert the track and set the rating.
+            cmd = """
+            INSERT INTO tracks (id, name, album, rating)
+                 VALUES (?, ?, ?, ?)
+            ON CONFLICT (id)
+                     DO UPDATE
+                    SET rating=excluded.rating
+            """
+            data = [(track.id, track.name, track.album.id, rating) for track in tracks]
         self._executemany(cmd, data)
 
     def insert_albums(self, albums):
