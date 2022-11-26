@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from src import schema
+from src.item import Album, Artist
 
 
 class DatabaseInterface:
@@ -33,8 +34,7 @@ class DatabaseInterface:
         """
         # Make sure the cursor is set.
         if self._active_cursor is None:
-            logging.error("Cannot execute a command outside of a transaction")
-            return None
+            raise RuntimeError("Cannot execute a command outside of a transaction")
 
         return self._active_cursor.execute(*args, **kwargs)
 
@@ -44,10 +44,9 @@ class DatabaseInterface:
         """
         # Make sure the cursor is set.
         if self._active_cursor is None:
-            logging.error(
+            raise RuntimeError(
                 "Cannot execute a parameterized command outside of a transaction"
             )
-            return None
 
         return self._active_cursor.executemany(*args, **kwargs)
 
@@ -201,6 +200,45 @@ class DatabaseInterface:
         """
         data = [(artist.id, artist.name) for artist in artists]
         self._executemany(cmd, data)
+
+    def get_albums(self):
+        """
+        Get a list of all albums in the database.
+        """
+        albums = []
+
+        cmd = """
+        SELECT albums.id,
+               albums.name,
+               artists.id,
+               artists.name
+          FROM albums
+          JOIN artists
+            ON albums.artist = artists.id
+        """
+        for album_id, album_name, artist_id, artist_name in self._con.execute(cmd):
+            artist = Artist(artist_id, artist_name)
+            album = Album(album_id, album_name, artist=artist)
+            albums.append(album)
+
+        return albums
+
+    def get_artists(self):
+        """
+        Get a list of all artists in the database.
+        """
+        artists = []
+
+        cmd = """
+        SELECT id,
+               name
+          FROM artists
+        """
+        for _id, name in self._con.execute(cmd):
+            artist = Artist(_id, name)
+            artists.append(artist)
+
+        return artists
 
     @staticmethod
     def semantic_version_to_tuple(string):

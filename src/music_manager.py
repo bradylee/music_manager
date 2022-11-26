@@ -56,6 +56,13 @@ class SpotifyManager:
             default=None,
             help="Rate each track with the given rating",
         )
+        subparser = subparsers.add_parser(
+            "fetch",
+            help="Fetch album data for known artists and track data for known albums",
+        )
+        subparser.add_argument(
+            "--token", type=str, required=True, help="Spotify access token"
+        )
         subparsers.add_parser("show", help="Print database summary information")
         self.parser = parser
 
@@ -70,6 +77,9 @@ class SpotifyManager:
         elif args.subparser == "add":
             self.api = SpotifyInterface(args.token)
             self.insert_items_from_playlist(args.playlist_id)
+        elif args.subparser == "fetch":
+            self.api = SpotifyInterface(args.token)
+            self.fetch_albums()
         elif args.subparser == "show":
             self.db.print_summary()
         else:
@@ -97,6 +107,16 @@ class SpotifyManager:
             self.db.insert_tracks(tracks, rating=rating)
             self.db.insert_albums(albums)
             self.db.insert_artists(artists)
+
+    def fetch_albums(self):
+        """
+        Fetch all albums from known artists and insert into the database.
+        """
+        artists = self.db.get_artists()
+        for artist in artists:
+            albums = self.api.get_artist_albums(artist.id)
+            with self.db.transaction():
+                self.db.insert_albums(albums)
 
 
 if __name__ == "__main__":
