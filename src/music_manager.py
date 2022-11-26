@@ -42,11 +42,19 @@ class SpotifyManager:
             "upgrade", help="Upgrade the database schema to the latest version"
         )
         subparser = subparsers.add_parser("add", help="Add items to the database")
-        subparser.add_argument("--token", type=str, help="Spotify access token")
+        subparser.add_argument(
+            "--token", type=str, required=True, help="Spotify access token"
+        )
         subparser.add_argument(
             "--playlist-id",
             type=str,
             help="Spotify ID of the playlist from which to fetch tracks",
+        )
+        subparser.add_argument(
+            "--rating",
+            type=int,
+            default=None,
+            help="Rate each track with the given rating",
         )
         subparsers.add_parser("show", help="Print database summary information")
         self.parser = parser
@@ -68,7 +76,7 @@ class SpotifyManager:
             # Default to print help.
             self.parser.print_help()
 
-    def insert_items_from_playlist(self, playlist_id):
+    def insert_items_from_playlist(self, playlist_id, rating=None):
         """
         Get tracks from a playlist and insert data from tracks, albums, and artists into the
         respective tables.
@@ -86,7 +94,7 @@ class SpotifyManager:
         artists = item.get_artist_list(albums)
 
         with self.db.transaction():
-            self.db.insert_tracks(tracks)
+            self.db.insert_tracks(tracks, rating=rating)
             self.db.insert_albums(albums)
             self.db.insert_artists(artists)
 
