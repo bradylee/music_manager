@@ -79,7 +79,7 @@ class SpotifyInterface:
 
         return tracks
 
-    def fetch_artist_albums(self, artist_id, limit=50):
+    def get_artist_albums(self, artist_id, limit=50):
         """
         Request all albums for a Spotify artist.
         Returns a list of Album objects.
@@ -142,7 +142,7 @@ class SpotifyInterface:
 
         return albums
 
-    def fetch_album_tracks(self, album_id):
+    def get_album_tracks(self, album_id):
         """
         Request all tracks for a Spotify album.
         Returns a list of Track objects.

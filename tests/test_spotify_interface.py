@@ -269,9 +269,9 @@ def test_getPlaylistItems_badResponse():
         assert mock.call_count == 1
 
 
-def test_fetchArtistAlbums():
+def test_getArtistAlbums():
     """
-    Test `fetch_artist_albums` by mocking the request and checking the response.
+    Test `get_artist_albums` by mocking the request and checking the response.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -311,7 +311,7 @@ def test_fetchArtistAlbums():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        albums = api.fetch_artist_albums(artist_id)
+        albums = api.get_artist_albums(artist_id)
 
         # Verify there was only one request.
         assert mock.call_count == 1
@@ -334,9 +334,9 @@ def test_fetchArtistAlbums():
         assert albums[2].artist.name == "Abyss Walker"
 
 
-def test_fetchArtistAlbums_multipleRequests():
+def test_getArtistAlbums_multipleRequests():
     """
-    Test `fetch_artist_albums` limit and offset logic by forcing multiple requests.
+    Test `get_artist_albums` limit and offset logic by forcing multiple requests.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -412,7 +412,7 @@ def test_fetchArtistAlbums_multipleRequests():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=get_response, status_code=status_code)
-        albums = api.fetch_artist_albums(artist_id, limit=1)
+        albums = api.get_artist_albums(artist_id, limit=1)
 
         # Verify the number of requests made.
         assert mock.call_count == 3
@@ -435,9 +435,9 @@ def test_fetchArtistAlbums_multipleRequests():
         assert albums[2].artist.name == "Abyss Walker"
 
 
-def test_fetchArtistAlbums_badResponse():
+def test_getArtistAlbums_badResponse():
     """
-    Test `fetch_artist_albums` with a bad response.
+    Test `get_artist_albums` with a bad response.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -450,13 +450,13 @@ def test_fetchArtistAlbums_badResponse():
         status_code = 400
         mock.get(endpoint, json={"fake": "data"}, status_code=status_code)
 
-        assert api.fetch_artist_albums(artist_id) is None
+        assert api.get_artist_albums(artist_id) is None
         assert mock.call_count == 1
 
 
-def test_fetchAlbumTracks():
+def test_getAlbumTracks():
     """
-    Test `fetch_album_tracks` by mocking the request and checking the response.
+    Test `get_album_tracks` by mocking the request and checking the response.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -497,7 +497,7 @@ def test_fetchAlbumTracks():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        tracks = api.fetch_album_tracks(album_id)
+        tracks = api.get_album_tracks(album_id)
 
         # Verify there was only one request.
         assert mock.call_count == 1
@@ -523,9 +523,9 @@ def test_fetchAlbumTracks():
         assert tracks[2].album.artist is None
 
 
-def test_fetchAlbumTracks_badResponse():
+def test_getAlbumTracks_badResponse():
     """
-    Test `fetch_album_tracks` with a bad response.
+    Test `get_album_tracks` with a bad response.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -538,5 +538,5 @@ def test_fetchAlbumTracks_badResponse():
         status_code = 400
         mock.get(endpoint, json={"fake": "data"}, status_code=status_code)
 
-        assert api.fetch_album_tracks(album_id) is None
+        assert api.get_album_tracks(album_id) is None
         assert mock.call_count == 1
