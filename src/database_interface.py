@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from src import schema
-from src.item import Album, Artist
+from src.item import Album, Artist, Track
 
 
 class DatabaseInterface:
@@ -201,6 +201,40 @@ class DatabaseInterface:
         """
         data = [(artist.id, artist.name) for artist in artists]
         self._executemany(cmd, data)
+
+    def get_tracks(self):
+        """
+        Get a list of all tracks in the database.
+        """
+        tracks = []
+
+        cmd = """
+        SELECT tracks.id,
+               tracks.name,
+               albums.id,
+               albums.name,
+               artists.id,
+               artists.name
+          FROM tracks
+          JOIN albums
+            ON tracks.album = albums.id
+          JOIN artists
+            ON albums.artist = artists.id
+        """
+        for (
+            track_id,
+            track_name,
+            album_id,
+            album_name,
+            artist_id,
+            artist_name,
+        ) in self._con.execute(cmd):
+            artist = Artist(artist_id, artist_name)
+            album = Album(album_id, album_name, artist=artist)
+            track = Track(track_id, track_name, album=album)
+            tracks.append(track)
+
+        return tracks
 
     def get_albums(self):
         """

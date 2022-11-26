@@ -90,6 +90,7 @@ class SpotifyManager:
         elif args.subparser == "fetch":
             self.api = SpotifyInterface(args.token)
             self.fetch_albums()
+            self.fetch_tracks()
         elif args.subparser == "show":
             self.db.print_summary()
         else:
@@ -127,6 +128,16 @@ class SpotifyManager:
             albums = self.api.get_artist_albums(artist.id)
             with self.db.transaction():
                 self.db.insert_albums(albums)
+
+    def fetch_tracks(self):
+        """
+        Fetch all tracks from known albums and insert into the database.
+        """
+        albums = self.db.get_albums()
+        for album in albums:
+            tracks = self.api.get_album_tracks(album.id)
+            with self.db.transaction():
+                self.db.insert_tracks(tracks)
 
 
 if __name__ == "__main__":
