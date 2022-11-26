@@ -6,7 +6,25 @@ from src.item import Album, Artist, Track
 
 def test_transaction(tmp_path):
     """
-    Test `transaction` by checking if changes are committed when expected.
+    Test `transaction` by checking that changes are committed when no exception is thrown.
+    """
+    # Create a new temporary database.
+    db = dut.DatabaseInterface(tmp_path / "test.db")
+
+    # Create a basic table and insert an arbitrary value.
+    with db.transaction():
+        db._execute("CREATE TABLE example (a int)")
+        db._execute("INSERT INTO example (a) VALUES (1)")
+
+    # Verify the example table was created and data was inserted.
+    cur = db._con.cursor()
+    rows = cur.execute("SELECT * FROM example").fetchall()
+    assert rows == [(1,)]
+
+
+def test_transaction_exception(tmp_path):
+    """
+    Test `transaction` by checking that changes are not committed when an exception is thrown.
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
@@ -21,29 +39,43 @@ def test_transaction(tmp_path):
             db._execute("CREATE TABLE sample (b text)")
             raise RuntimeError
 
-    # Check that no tables were created.
+    # Verify that no tables were created.
     assert db.get_tables() == []
 
-    # Try again without the exception.
-    with db.transaction():
-        db._execute("CREATE TABLE example (a int)")
-        db._execute("INSERT INTO example (a) VALUES (1)")
 
-    # Check the example table was created and data was inserted.
-    cur = db._con.cursor()
-    rows = cur.execute("SELECT * FROM example").fetchall()
-    assert rows == [(1,)]
-
-
-def test_create_tables(tmp_path):
+def test_createTables(tmp_path):
     """
-    Test `create_tables` by inserting and selecting data.
+    Test `create_tables` by checking the list of tables and the version number.
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
     cur = db._con.cursor()
 
     # Function under test.
+    db.create_tables()
+
+    # Verify that all tables were created.
+    tables = db.get_tables()
+    assert "tracks" in tables
+    assert "albums" in tables
+    assert "artists" in tables
+    assert "version" in tables
+
+    # Verify the version table includes the latest version.
+    rows = cur.execute("SELECT * FROM version").fetchall()
+    version = dut.DatabaseInterface.get_latest_schema_version()
+    assert rows == [version]
+
+
+def test_createTables_force(tmp_path):
+    """
+    Test `create_tables` by confirming data is cleared on force.
+    """
+    # Create a new temporary database.
+    db = dut.DatabaseInterface(tmp_path / "test.db")
+    cur = db._con.cursor()
+
+    # Create the initial tables.
     db.create_tables()
 
     # Insert sample data into the tables.
@@ -59,7 +91,7 @@ def test_create_tables(tmp_path):
     """
     cur.executescript(cmd)
 
-    # Check the tables have data.
+    # Verify the tables have some data.
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert len(rows) == 1
     rows = cur.execute("SELECT * FROM albums").fetchall()
@@ -67,10 +99,10 @@ def test_create_tables(tmp_path):
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert len(rows) == 1
 
-    # Recreate the tables.
+    # Recreate the tables with force.
     db.create_tables(force=True)
 
-    # Check the tables are now empty
+    # Verify the tables are now empty
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert len(rows) == 0
     rows = cur.execute("SELECT * FROM albums").fetchall()
@@ -78,13 +110,8 @@ def test_create_tables(tmp_path):
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert len(rows) == 0
 
-    # Check the version table includes the latest version.
-    rows = cur.execute("SELECT * FROM version").fetchall()
-    version = dut.DatabaseInterface.get_latest_schema_version()
-    assert rows == [version]
 
-
-def test_insert_tracks(tmp_path):
+def test_insertTracks(tmp_path):
     """
     Test `insert_tracks` by selecting data and comparing it to the input.
     """
@@ -116,7 +143,7 @@ def test_insert_tracks(tmp_path):
     with db.transaction():
         db.insert_tracks(tracks)
 
-    # Select data from the database to check it was inserted correctly.
+    # Select data from the database to read it back.
     cmd = """
       SELECT id,
              name,
@@ -126,8 +153,10 @@ def test_insert_tracks(tmp_path):
     """
     rows = cur.execute(cmd).fetchall()
 
+    # Verify the number of tracks.
     assert len(rows) == 3
 
+    # Verify the selected data matches the input.
     assert rows[0] == (
         "6bsxDgpU5nlcHNZYtsfZG8",
         "Bleeding Sun",
@@ -137,7 +166,7 @@ def test_insert_tracks(tmp_path):
     assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")
 
 
-def test_insert_albums(tmp_path):
+def test_insertAlbums(tmp_path):
     """
     Test `insert_albums` by selecting data and comparing it to the input.
     """
@@ -169,7 +198,7 @@ def test_insert_albums(tmp_path):
     with db.transaction():
         db.insert_albums(albums)
 
-    # Select data from the database to check it was inserted correctly.
+    # Select data from the database to read it back.
     cmd = """
       SELECT id,
              name,
@@ -179,8 +208,10 @@ def test_insert_albums(tmp_path):
     """
     rows = cur.execute(cmd).fetchall()
 
+    # Verify the number of albums.
     assert len(rows) == 3
 
+    # Verify the selected data matches the input.
     assert rows[0] == (
         "7hkhFnClNPmRXL20KqdzSO",
         "Bleeding Sun",
@@ -194,7 +225,7 @@ def test_insert_albums(tmp_path):
     )
 
 
-def test_insert_artists(tmp_path):
+def test_insertArtists(tmp_path):
     """
     Test `insert_artists` by selecting data and comparing it to the input.
     """
@@ -214,7 +245,7 @@ def test_insert_artists(tmp_path):
     with db.transaction():
         db.insert_artists(artists)
 
-    # Select data from the database to check it was inserted correctly.
+    # Select data from the database to read it back.
     cmd = """
       SELECT id,
              name
@@ -223,14 +254,16 @@ def test_insert_artists(tmp_path):
     """
     rows = cur.execute(cmd).fetchall()
 
+    # Verify the number of albums.
     assert len(rows) == 3
 
+    # Verify the selected data matches the input.
     assert rows[0] == ("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
     assert rows[1] == ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
     assert rows[2] == ("7bDLHytU8vohbiWbePGrRU", "Falsifier")
 
 
-def test_semantic_version_to_tuple():
+def test_semanticVersionToTuple():
     """
     Test `semantic_version_to_tuple` with example data.
     """
@@ -239,7 +272,7 @@ def test_semantic_version_to_tuple():
     assert dut.DatabaseInterface.semantic_version_to_tuple("2.10.100") == (2, 10, 100)
 
 
-def test_tuple_to_semantic_version():
+def test_tupleToSemanticVersion():
     """
     Test `tuple_to_semantic_version` with example data.
     """
@@ -248,7 +281,7 @@ def test_tuple_to_semantic_version():
     assert dut.DatabaseInterface.tuple_to_semantic_version((2, 10, 100)) == "2.10.100"
 
 
-def test_get_latest_schema_version():
+def test_getLatestSchemaVersion():
     """
     Test `get_latest_schema_version` with a mock schemas lookup.
     """
@@ -260,15 +293,15 @@ def test_get_latest_schema_version():
         "2.0.10": "d",
     }
 
+    # Verify the latest schema is the greatest version number.
     assert dut.DatabaseInterface.get_latest_schema_version(schemas) == (10, 10, 0)
 
 
-def test_get_schema():
+def test_getSchema():
     """
-    Test `get_schema` by requesting valid and invalid versions.
+    Test `get_schema` by requesting a valid version.
     """
-
-    # Check the value for a real version.
+    # Verify the value for a real version.
     assert dut.DatabaseInterface.get_schema((1, 0, 0)) == {
         "tracks": {
             "id": "text NOT NULL PRIMARY KEY",
@@ -286,13 +319,18 @@ def test_get_schema():
         },
     }
 
-    # Check the value for a fake version.
+
+def test_getSchema_invalid():
+    """
+    Test `get_schema` by requesting an invalid version.
+    """
+    # Verify the value for a fake version.
     assert dut.DatabaseInterface.get_schema((0, 0, 0)) is None
 
 
-def test_create_table_from_schema(tmp_path):
+def test_createTableFromSchema(tmp_path):
     """
-    Test `create_table_from_schema` by creating an example table and inserting and selecting data.
+    Test `create_table_from_schema` using a simplified schema.
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
@@ -319,14 +357,14 @@ def test_create_table_from_schema(tmp_path):
     """
     cur.executemany(cmd, data)
 
-    # Check the tables have data.
+    # Verify the tables have data.
     rows = cur.execute("SELECT * FROM example").fetchall()
     assert len(rows) == 2
 
 
-def test_upgrade_tables(tmp_path):
+def test_upgradeTables(tmp_path):
     """
-    Test `upgrade_tables` by creating a 1.0.0 table and updating it to the 1.1.0 schema.
+    Test `upgrade_tables` by creating a 1.0.0 table and upgrading it to the 1.1.0 schema.
     """
     # Create a new temporary database with an old schema.
     db = dut.DatabaseInterface(tmp_path / "test.db")
@@ -346,7 +384,7 @@ def test_upgrade_tables(tmp_path):
     """
     cur.executescript(cmd)
 
-    # Check the tables have only 1.0.0 columns.
+    # Verify the tables have only 1.0.0 columns.
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")]
     rows = cur.execute("SELECT * FROM albums").fetchall()
@@ -356,10 +394,10 @@ def test_upgrade_tables(tmp_path):
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
 
-    # Function under test.
+    # Upgrade the table to the newer schema.
     db.upgrade_tables((1, 1, 0))
 
-    # Check the tables now include 1.1.0 columns with default values.
+    # Verify the tables now include 1.1.0 columns with default values.
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
     rows = cur.execute("SELECT * FROM albums").fetchall()
@@ -369,11 +407,11 @@ def test_upgrade_tables(tmp_path):
     rows = cur.execute("SELECT * FROM artists").fetchall()
     assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
 
-    # Check the version table shows the updated version.
+    # Verify the version table shows the updated version.
     rows = cur.execute("SELECT * FROM version").fetchall()
     assert rows == [(1, 1, 0)]
 
-    # Check that running again does nothing.
+    # Verify that running again does nothing to show that upgrade is idempotent.
     db.upgrade_tables((1, 1, 0))
     rows = cur.execute("SELECT * FROM tracks").fetchall()
     assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
@@ -387,9 +425,9 @@ def test_upgrade_tables(tmp_path):
     assert rows == [(1, 1, 0)]
 
 
-def test_print_summary(tmp_path, capsys):
+def test_printSummary(tmp_path, capsys):
     """
-    Test `print_summary` by inserting data into a new database.
+    Test `print_summary` by inserting different numbers of tracks, albums, and artists.
     """
     # Create a new temporary database.
     db = dut.DatabaseInterface(tmp_path / "test.db")
@@ -426,6 +464,6 @@ def test_print_summary(tmp_path, capsys):
     # Function under test.
     db.print_summary()
 
-    # Check the output.
+    # Verify the output.
     captured = capsys.readouterr()
     assert captured.out == "8 tracks\n4 albums\n2 artists\n"

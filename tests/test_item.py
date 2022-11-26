@@ -2,7 +2,7 @@ from src import item as dut
 from src.item import Album, Artist, Track
 
 
-def test_get_album_list():
+def test_getAlbumList():
     """
     Test `get_album_list` with sample data including duplicates.
     """
@@ -33,10 +33,10 @@ def test_get_album_list():
     # Function under test.
     albums = dut.get_album_list(tracks)
 
-    # Check the duplicate album was removed.
+    # Verify the duplicate album was removed.
     assert len(albums) == 3
 
-    # Check the object member values.
+    # Verify the object member values.
     assert albums[0].id == "7hkhFnClNPmRXL20KqdzSO"
     assert albums[0].name == "Bleeding Sun"
     assert albums[1].id == "1GLmxzF8g5p0fcdAatGq5Y"
@@ -45,7 +45,7 @@ def test_get_album_list():
     assert albums[2].name == "World Demise"
 
 
-def test_get_artist_list():
+def test_getArtistList():
     """
     Test `get_artist_list` with sample data including duplicates.
     """
@@ -76,10 +76,10 @@ def test_get_artist_list():
     # Function under test.
     artists = dut.get_artist_list(albums)
 
-    # Check the duplicate artist was removed.
+    # Verify the duplicate artist was removed.
     assert len(artists) == 3
 
-    # Check the object member values.
+    # Verify the object member values.
     assert artists[0].id == "4UgQ3EFa8fEeaIEg54uV5b"
     assert artists[0].name == "Chelsea Grin"
     assert artists[1].id == "7z9n8Q0icbgvXqx1RWoGrd"

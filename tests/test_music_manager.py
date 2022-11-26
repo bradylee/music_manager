@@ -4,9 +4,9 @@ from src import music_manager as dut
 from src.spotify_interface import SpotifyInterface
 
 
-def test_insert_items_from_playlist(tmp_path):
+def test_insertItemsFromPlaylist(tmp_path):
     """
-    Test `insert_items_from_playlist` by mocking requests and selecting data.
+    Test `insert_items_from_playlist` by mocking the requests and comparing table data.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -81,7 +81,7 @@ def test_insert_items_from_playlist(tmp_path):
         mock.get(endpoint, json=response_data, status_code=status_code)
         app.insert_items_from_playlist(playlist_id)
 
-    # Select and check track data.
+    # Get the track data.
     cmd = """
       SELECT id,
              name,
@@ -91,8 +91,10 @@ def test_insert_items_from_playlist(tmp_path):
     """
     rows = cur.execute(cmd).fetchall()
 
+    # Verify the number of tracks.
     assert len(rows) == 3
 
+    # Verify the track data.
     assert rows[0] == (
         "6bsxDgpU5nlcHNZYtsfZG8",
         "Bleeding Sun",
@@ -101,7 +103,7 @@ def test_insert_items_from_playlist(tmp_path):
     assert rows[1] == ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y")
     assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")
 
-    # Select and check album data.
+    # Get the album data.
     cmd = """
       SELECT id,
              name,
@@ -111,8 +113,10 @@ def test_insert_items_from_playlist(tmp_path):
     """
     rows = cur.execute(cmd).fetchall()
 
+    # Verify the number of albums.
     assert len(rows) == 3
 
+    # Verify the album data.
     assert rows[0] == (
         "7hkhFnClNPmRXL20KqdzSO",
         "Bleeding Sun",
@@ -125,7 +129,7 @@ def test_insert_items_from_playlist(tmp_path):
         "7bDLHytU8vohbiWbePGrRU",
     )
 
-    # Select and check artist data.
+    # Get the artist data.
     cmd = """
       SELECT id,
              name
@@ -134,8 +138,10 @@ def test_insert_items_from_playlist(tmp_path):
     """
     rows = cur.execute(cmd).fetchall()
 
+    # Verify the number of artists.
     assert len(rows) == 3
 
+    # Verify the artist data.
     assert rows[0] == ("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
     assert rows[1] == ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
     assert rows[2] == ("7bDLHytU8vohbiWbePGrRU", "Falsifier")
