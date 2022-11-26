@@ -1,7 +1,7 @@
 import requests_mock
 
 from src import music_manager as dut
-from src.item import Artist
+from src.item import Album, Artist
 from src.spotify_interface import SpotifyInterface
 
 
@@ -261,7 +261,7 @@ def test_insertItemsFromPlaylist_rated(tmp_path):
 
 def test_fetchAlbums(tmp_path):
     """
-    Test `fetch_albums` by mocking the request and checking the response.
+    Test `fetch_albums` by mocking the request and selecting from the database.
     """
     # Create a new temporary database.
     database_path = tmp_path / "test.db"
@@ -366,3 +366,132 @@ def test_fetchAlbums(tmp_path):
         assert albums[5].name == "Ocean"
         assert albums[5].artist.id == "aBMmJr6ROvQ"
         assert albums[5].artist.name == "Walker"
+
+
+def test_fetchTracks(tmp_path):
+    """
+    Test `fetch_tracks` by mocking the request and selecting from the database.
+    """
+    # Create a new temporary database.
+    database_path = tmp_path / "test.db"
+    app = dut.SpotifyManager(database_path)
+    app.api = SpotifyInterface("sample_token")
+    app.db.create_tables()
+
+    # Populate the albums, so we can fetch tracks for these.
+    # We also need to populate the artist so the join succeeds.
+    artist = Artist("0gJ0dOw0r6d", "Acrania")
+    albums = [
+        Album("1B5sG6YCOqg", "The Beginning", artist=artist),
+        Album("lv5djSYqp0X", "The End", artist=artist),
+    ]
+    with app.db.transaction():
+        app.db.insert_artists([artist])
+        app.db.insert_albums(albums)
+
+    # Limited response data for the first album.
+    response_data_1 = {
+        "id": "1B5sG6YCOqg",
+        "name": "The Beginning",
+        "tracks": {
+            "items": [
+                {
+                    "id": "55Ps7eQ0IpSy",
+                    "name": "Beginning",
+                },
+                {
+                    "id": "5xyv86cHra90",
+                    "name": "Auctioneer",
+                },
+                {
+                    "id": "4tiUaYEcc20f",
+                    "name": "Depopulation",
+                },
+            ],
+            "total": 3,
+        },
+    }
+
+    # Limited response data for the second album.
+    response_data_2 = {
+        "id": "lv5djSYqp0X",
+        "name": "The End",
+        "tracks": {
+            "items": [
+                {
+                    "id": "IpSypn32TH6uCi",
+                    "name": "End",
+                },
+                {
+                    "id": "a90CtItbROxdl",
+                    "name": "Depravity",
+                },
+                {
+                    "id": "c20fVSluB31T0y",
+                    "name": "Programme",
+                },
+            ],
+            "total": 3,
+        },
+    }
+
+    # Mock the requests.
+    with requests_mock.mock() as mock:
+        status_code = 200
+        mock.get(
+            "https://api.spotify.com/v1/albums/1B5sG6YCOqg",
+            json=response_data_1,
+            status_code=status_code,
+        )
+        mock.get(
+            "https://api.spotify.com/v1/albums/lv5djSYqp0X",
+            json=response_data_2,
+            status_code=status_code,
+        )
+
+        # Function under test.
+        app.fetch_tracks()
+
+        # Get the track data.
+        tracks = app.db.get_tracks()
+
+        # Verify the number of albums.
+        assert len(tracks) == 6
+
+        # Verify the track data.
+        assert tracks[0].id == "55Ps7eQ0IpSy"
+        assert tracks[0].name == "Beginning"
+        assert tracks[0].album.id == "1B5sG6YCOqg"
+        assert tracks[0].album.name == "The Beginning"
+        assert tracks[0].album.artist.id == "0gJ0dOw0r6d"
+        assert tracks[0].album.artist.name == "Acrania"
+        assert tracks[1].id == "5xyv86cHra90"
+        assert tracks[1].name == "Auctioneer"
+        assert tracks[1].album.id == "1B5sG6YCOqg"
+        assert tracks[1].album.name == "The Beginning"
+        assert tracks[1].album.artist.id == "0gJ0dOw0r6d"
+        assert tracks[1].album.artist.name == "Acrania"
+        assert tracks[2].id == "4tiUaYEcc20f"
+        assert tracks[2].name == "Depopulation"
+        assert tracks[2].album.id == "1B5sG6YCOqg"
+        assert tracks[2].album.name == "The Beginning"
+        assert tracks[2].album.artist.id == "0gJ0dOw0r6d"
+        assert tracks[2].album.artist.name == "Acrania"
+        assert tracks[3].id == "IpSypn32TH6uCi"
+        assert tracks[3].name == "End"
+        assert tracks[3].album.id == "lv5djSYqp0X"
+        assert tracks[3].album.name == "The End"
+        assert tracks[3].album.artist.id == "0gJ0dOw0r6d"
+        assert tracks[3].album.artist.name == "Acrania"
+        assert tracks[4].id == "a90CtItbROxdl"
+        assert tracks[4].name == "Depravity"
+        assert tracks[4].album.id == "lv5djSYqp0X"
+        assert tracks[4].album.name == "The End"
+        assert tracks[4].album.artist.id == "0gJ0dOw0r6d"
+        assert tracks[4].album.artist.name == "Acrania"
+        assert tracks[5].id == "c20fVSluB31T0y"
+        assert tracks[5].name == "Programme"
+        assert tracks[5].album.id == "lv5djSYqp0X"
+        assert tracks[5].album.name == "The End"
+        assert tracks[5].album.artist.id == "0gJ0dOw0r6d"
+        assert tracks[5].album.artist.name == "Acrania"
