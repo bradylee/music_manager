@@ -76,7 +76,7 @@ class SpotifyManager:
             self.db.upgrade_tables()
         elif args.subparser == "add":
             self.api = SpotifyInterface(args.token)
-            self.insert_items_from_playlist(args.playlist_id)
+            self.insert_items_from_playlist(args.playlist_id, rating=args.rating)
         elif args.subparser == "fetch":
             self.api = SpotifyInterface(args.token)
             self.fetch_albums()
