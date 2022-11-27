@@ -539,21 +539,37 @@ def test_printSummary(tmp_path, capsys):
     ]
     cur.executemany("INSERT INTO albums(id, name, artist) VALUES (?, ?, ?)", albums)
 
+    # Unique tracks with different ratings and number of times rated.
+    # It should not be possible to have a rating with no times rated.
     tracks = [
-        ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y"),
-        ("15eQh5ZLBoMReY20MDG37T2", "Breathless 2", "1GLmxzF8g5p0fcdAatGq5Y"),
-        ("15eQh5ZLBoMReY20MDG37T3", "Breathless 3", "1GLmxzF8g5p0fcdAatGq5Y2"),
-        ("15eQh5ZLBoMReY20MDG37T4", "Breathless 4", "1GLmxzF8g5p0fcdAatGq5Y2"),
-        ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB"),
-        ("2GDX9DpZgXsLAkXhHBQU1Q2", "Choke 2", "0a40snAsSiU0fSBrba93YB"),
-        ("2GDX9DpZgXsLAkXhHBQU1Q3", "Choke 3", "0a40snAsSiU0fSBrba93YB2"),
-        ("2GDX9DpZgXsLAkXhHBQU1Q4", "Choke 4", "0a40snAsSiU0fSBrba93YB2"),
+        ("15eQh5ZLBoMReY20MDG37T", "Breathless", "1GLmxzF8g5p0fcdAatGq5Y", 1, 1),
+        ("15eQh5ZLBoMReY20MDG37T2", "Breathless 2", "1GLmxzF8g5p0fcdAatGq5Y", 1, 2),
+        ("15eQh5ZLBoMReY20MDG37T3", "Breathless 3", "1GLmxzF8g5p0fcdAatGq5Y2", 1, 10),
+        ("15eQh5ZLBoMReY20MDG37T4", "Breathless 4", "1GLmxzF8g5p0fcdAatGq5Y2", 1, 100),
+        ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0),
+        ("2GDX9DpZgXsLAkXhHBQU1Q2", "Choke 2", "0a40snAsSiU0fSBrba93YB", 0, 2),
+        ("2GDX9DpZgXsLAkXhHBQU1Q3", "Choke 3", "0a40snAsSiU0fSBrba93YB2", 0, 4),
+        ("2GDX9DpZgXsLAkXhHBQU1Q4", "Choke 4", "0a40snAsSiU0fSBrba93YB2", 0, 6),
+        ("2GDX9DpZgXsLAkXhHBQU1Q5", "Choke 5", "0a40snAsSiU0fSBrba93YB2", -1, 1),
+        ("2GDX9DpZgXsLAkXhHBQU1Q6", "Choke 6", "0a40snAsSiU0fSBrba93YB2", -1, 3),
     ]
-    cur.executemany("INSERT INTO tracks(id, name, album) VALUES (?, ?, ?)", tracks)
+    cur.executemany("INSERT INTO tracks(id, name, album, rating, num_times_rated) VALUES (?, ?, ?, ?, ?)", tracks)
 
     # Function under test.
     db.print_summary()
 
+    # The expected output.
+    expected = (
+        "10 tracks\n"
+        "    9 rated\n"
+        "        4 liked\n"
+        "        3 neutral\n"
+        "        2 disliked\n"
+        "    1 unrated\n"
+        "4 albums\n"
+        "2 artists\n"
+    )
+
     # Verify the output.
     captured = capsys.readouterr()
-    assert captured.out == "8 tracks\n4 albums\n2 artists\n"
+    assert captured.out == expected
