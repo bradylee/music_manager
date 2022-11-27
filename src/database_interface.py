@@ -395,16 +395,53 @@ class DatabaseInterface:
         SELECT COUNT()
           FROM tracks
         """
-        print(self._con.execute(cmd).fetchone()[0], "tracks")
+        num_tracks = self._con.execute(cmd).fetchone()[0]
+
+        cmd = """
+        SELECT COUNT()
+          FROM tracks
+         WHERE rating != 0
+            OR num_times_rated > 0
+        """
+        num_rated_tracks = self._con.execute(cmd).fetchone()[0]
+        num_unrated_tracks = num_tracks - num_rated_tracks
+
+        cmd = """
+        SELECT COUNT()
+          FROM tracks
+         WHERE rating > 0
+        """
+        num_liked_tracks = self._con.execute(cmd).fetchone()[0]
+
+        cmd = """
+        SELECT COUNT()
+          FROM tracks
+         WHERE rating < 0
+        """
+        num_disliked_tracks = self._con.execute(cmd).fetchone()[0]
+        num_neutral_tracks = num_rated_tracks - num_liked_tracks - num_disliked_tracks
 
         cmd = """
         SELECT COUNT()
           FROM albums
         """
-        print(self._con.execute(cmd).fetchone()[0], "albums")
+        num_albums = self._con.execute(cmd).fetchone()[0]
 
         cmd = """
         SELECT COUNT()
           FROM artists
         """
-        print(self._con.execute(cmd).fetchone()[0], "artists")
+        num_artists = self._con.execute(cmd).fetchone()[0]
+
+        summary = (
+            f"{num_tracks} tracks\n"
+            f"    {num_rated_tracks} rated\n"
+            f"        {num_liked_tracks} liked\n"
+            f"        {num_neutral_tracks} neutral\n"
+            f"        {num_disliked_tracks} disliked\n"
+            f"    {num_unrated_tracks} unrated\n"
+            f"{num_albums} albums\n"
+            f"{num_artists} artists\n"
+        )
+
+        print(summary, end="")
