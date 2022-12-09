@@ -553,7 +553,10 @@ def test_printSummary(tmp_path, capsys):
         ("2GDX9DpZgXsLAkXhHBQU1Q5", "Choke 5", "0a40snAsSiU0fSBrba93YB2", -1, 1),
         ("2GDX9DpZgXsLAkXhHBQU1Q6", "Choke 6", "0a40snAsSiU0fSBrba93YB2", -1, 3),
     ]
-    cur.executemany("INSERT INTO tracks(id, name, album, rating, num_times_rated) VALUES (?, ?, ?, ?, ?)", tracks)
+    cur.executemany(
+        "INSERT INTO tracks(id, name, album, rating, num_times_rated) VALUES (?, ?, ?, ?, ?)",
+        tracks,
+    )
 
     # Function under test.
     db.print_summary()
