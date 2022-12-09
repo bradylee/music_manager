@@ -173,7 +173,9 @@ class DatabaseInterface:
                     SET rating = excluded.rating,
                         num_times_rated = num_times_rated + 1
             """
-            data = [(track.id, track.name, track.album.id, rating, 1) for track in tracks]
+            data = [
+                (track.id, track.name, track.album.id, rating, 1) for track in tracks
+            ]
         self._executemany(cmd, data)
 
     def insert_albums(self, albums):
@@ -460,4 +462,7 @@ class DatabaseInterface:
 
         # Check accuracy by summing up each value.
         assert num_tracks == num_rated_tracks + num_unrated_tracks
-        assert num_rated_tracks == num_liked_tracks + num_neutral_tracks + num_disliked_tracks
+        assert (
+            num_rated_tracks
+            == num_liked_tracks + num_neutral_tracks + num_disliked_tracks
+        )
