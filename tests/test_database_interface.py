@@ -1,4 +1,5 @@
 import pytest
+import sqlite3
 
 from src import database_interface as dut
 from src.item import Album, Artist, Track
@@ -351,6 +352,62 @@ def test_insertArtists(tmp_path):
     assert rows[0] == ("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin")
     assert rows[1] == ("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD")
     assert rows[2] == ("7bDLHytU8vohbiWbePGrRU", "Falsifier")
+
+
+def test_setAlbumIsFetched(tmp_path):
+    """
+    Test `set_album_is_fetched` by ensuring the flag is set for only a given existing album.
+    """
+    # Input data.
+    albums = [
+        Album(
+            "7hkhFnClNPmRXL20KqdzSO",
+            "Bleeding Sun",
+            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin"),
+        ),
+        Album(
+            "1GLmxzF8g5p0fcdAatGq5Y",
+            "Fractured",
+            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
+        ),
+        Album(
+            "0a40snAsSiU0fSBrba93YB",
+            "World Demise",
+            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
+        ),
+    ]
+
+    # Create a new temporary database.
+    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db.create_tables()
+    cur = db._con.cursor()
+
+    # Function under test.
+    with db.transaction():
+        db.insert_albums(albums)
+
+    # Check the flag is cleared by default for all entries.
+    cmd = """
+      SELECT is_fetched
+        FROM albums
+    """
+    rows = cur.execute(cmd).fetchall()
+    assert rows == [(0,), (0,), (0,)]
+
+    # Set the flag for an actual album and a non-existent album.
+    album_id = "1GLmxzF8g5p0fcdAatGq5Y"
+    with db.transaction():
+        db.set_album_is_fetched("does_not_exist")
+        db.set_album_is_fetched(album_id)
+
+    # Check the flag is set for only the one real album.
+    cmd = """
+      SELECT id
+        FROM albums
+       WHERE is_fetched = 1
+    """
+    rows = cur.execute(cmd).fetchall()
+    assert rows == [(album_id,)]
 
 
 def test_semanticVersionToTuple():

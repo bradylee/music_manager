@@ -277,6 +277,17 @@ class DatabaseInterface:
 
         return artists
 
+    def set_album_is_fetched(self, album_id):
+        """
+        Set the is_fetched flag for the given album.
+        """
+        cmd = """
+        UPDATE albums
+           SET is_fetched = 1
+         WHERE id = ?
+        """
+        self._execute(cmd, (album_id,))
+
     @staticmethod
     def semantic_version_to_tuple(string):
         """

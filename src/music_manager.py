@@ -138,6 +138,7 @@ class SpotifyManager:
             tracks = self.api.get_album_tracks(album.id)
             with self.db.transaction():
                 self.db.insert_tracks(tracks)
+                self.db.set_album_is_fetched(album.id)
 
 
 if __name__ == "__main__":
