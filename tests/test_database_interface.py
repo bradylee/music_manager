@@ -1,5 +1,4 @@
 import pytest
-import sqlite3
 
 from src import database_interface as dut
 from src.item import Album, Artist, Track
