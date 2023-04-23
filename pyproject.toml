@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "musicmanager"
+version = "0.1.0"
+dependencies = [
+    "requests",
+]
+
+[project.scripts]
+musicmanager = "musicmanager.core:main"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src",
+]

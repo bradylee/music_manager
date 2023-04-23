@@ -1,12 +1,16 @@
-# Editor temporary files.
+# Ignore editor temporary files.
 *.swp
 
-# Python virtual environment.
+# Ignore Python virtual environment.
 venv/
 
-# Pytest artifacts.
+# Ignore pytest artifacts.
 .pytest_cache/
 __pycache__/
 
-# Coverage artifacts.
+# Ignore coverage artifacts.
 .coverage
+
+# Ignore packaging artifacts.
+dist/
+*.egg-info/

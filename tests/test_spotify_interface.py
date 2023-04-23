@@ -2,7 +2,7 @@ from urllib.parse import parse_qs, urlparse
 
 import requests_mock
 
-from src import spotify_interface as dut
+from musicmanager import spotify_interface as dut
 
 
 def test_getRequestHeaders():

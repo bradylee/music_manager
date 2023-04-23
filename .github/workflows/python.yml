@@ -32,11 +32,10 @@ jobs:
         flake8
     - name: Format with black
       run: |
-        black --check src/*.py tests/*.py
+        black --check src/ tests/
     - name: Format with isort
       run: |
-        isort src
-        isort tests
+        find src/ tests/ -name "*.py" | xargs isort
         # Fail if there are changes.
         git diff --quiet
     - name: Test with pytest
