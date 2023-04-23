@@ -3,8 +3,8 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-from src import schema
-from src.item import Album, Artist, Track
+from musicmanager import schema
+from musicmanager.item import Album, Artist, Track
 
 
 class DatabaseInterface:
@@ -104,7 +104,6 @@ class DatabaseInterface:
         Create tables for storing item information using the latest schema.
         """
         with self.transaction():
-
             # Default to latest version if one is not given.
             if version is None:
                 version = DatabaseInterface.get_latest_schema_version()
@@ -355,7 +354,6 @@ class DatabaseInterface:
             new_version = DatabaseInterface.get_latest_schema_version()
 
         with self.transaction():
-
             # Get current schema version.
             if "version" in existing_tables:
                 current_version = self._execute("SELECT * FROM version").fetchone()

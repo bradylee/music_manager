@@ -1,5 +1,5 @@
-from src import item as dut
-from src.item import Album, Artist, Track
+from musicmanager import item as dut
+from musicmanager.item import Album, Artist, Track
 
 
 def test_getAlbumList():

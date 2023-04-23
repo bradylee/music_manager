@@ -1,8 +1,8 @@
 import requests_mock
 
-from src import music_manager as dut
-from src.item import Album, Artist
-from src.spotify_interface import SpotifyInterface
+from musicmanager import core as dut
+from musicmanager.item import Album, Artist
+from musicmanager.spotify_interface import SpotifyInterface
 
 
 def test_insertItemsFromPlaylist(tmp_path):

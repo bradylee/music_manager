@@ -1,9 +1,9 @@
 import argparse
 import logging
 
-from src import item
-from src.database_interface import DatabaseInterface
-from src.spotify_interface import SpotifyInterface
+from musicmanager import item
+from musicmanager.database_interface import DatabaseInterface
+from musicmanager.spotify_interface import SpotifyInterface
 
 
 class SpotifyManager:
@@ -140,6 +140,10 @@ class SpotifyManager:
                 self.db.insert_tracks(tracks)
 
 
-if __name__ == "__main__":
+def main():
     app = SpotifyManager()
     app.run()
+
+
+if __name__ == "__main__":
+    main()

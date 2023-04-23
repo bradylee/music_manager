@@ -1,7 +1,12 @@
+# Source dependencies.
+requests
+
+# Formatting and linting dependencies.
 black
 flake8
 isort
+
+# Test dependencies.
 pytest
 pytest-cov
-requests
 requests-mock
