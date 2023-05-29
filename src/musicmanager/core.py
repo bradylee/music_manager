@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from musicmanager import item
-from musicmanager.database_interface import DatabaseInterface
+from musicmanager.database import Database
 from musicmanager.spotify import Spotify
 
 
@@ -23,7 +23,7 @@ class SpotifyManager:
         )
 
         # Create the database interface. This opens a database connection automatically.
-        self.db = DatabaseInterface(database_path)
+        self.db = Database(database_path)
 
         # The Spotify interface depends on parsing arguments for the token.
         self.api = None

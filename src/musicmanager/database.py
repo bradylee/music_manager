@@ -7,9 +7,9 @@ from musicmanager import schema
 from musicmanager.item import Album, Artist, Track
 
 
-class DatabaseInterface:
+class Database:
     """
-    Class to interface with the database in Spotify Manager.
+    Interface to the database.
     """
 
     def __init__(self, database_path=None):
@@ -106,8 +106,8 @@ class DatabaseInterface:
         with self.transaction():
             # Default to latest version if one is not given.
             if version is None:
-                version = DatabaseInterface.get_latest_schema_version()
-            schema = DatabaseInterface.get_schema(version)
+                version = Database.get_latest_schema_version()
+            schema = Database.get_schema(version)
 
             # Get a list of existing tables.
             tables = self.get_tables()
@@ -308,9 +308,7 @@ class DatabaseInterface:
 
         # We use semantic versioning with no extensions, so we can simply sort after parsing to get
         # the latest version.
-        versions = [
-            DatabaseInterface.semantic_version_to_tuple(key) for key in schemas.keys()
-        ]
+        versions = [Database.semantic_version_to_tuple(key) for key in schemas.keys()]
         return sorted(versions)[-1]
 
     @staticmethod
@@ -318,7 +316,7 @@ class DatabaseInterface:
         """
         Return the schema associated with the given version or None if the version does not exist.
         """
-        semantic_version = DatabaseInterface.tuple_to_semantic_version(version)
+        semantic_version = Database.tuple_to_semantic_version(version)
         return schema.schemas.get(semantic_version, None)
 
     def create_table_from_schema(self, name, schema):
@@ -351,7 +349,7 @@ class DatabaseInterface:
 
         # Default to the latest version.
         if new_version is None:
-            new_version = DatabaseInterface.get_latest_schema_version()
+            new_version = Database.get_latest_schema_version()
 
         with self.transaction():
             # Get current schema version.
@@ -366,8 +364,8 @@ class DatabaseInterface:
                 return
 
             # Add new columns to the item tables.
-            current_schema = DatabaseInterface.get_schema(current_version)
-            new_schema = DatabaseInterface.get_schema(new_version)
+            current_schema = Database.get_schema(current_version)
+            new_schema = Database.get_schema(new_version)
             for table in item_tables:
                 for column in new_schema[table].keys():
                     if column in current_schema[table]:
