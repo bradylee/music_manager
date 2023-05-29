@@ -2,7 +2,7 @@ import requests_mock
 
 from musicmanager import core as dut
 from musicmanager.item import Album, Artist
-from musicmanager.spotify_interface import SpotifyInterface
+from musicmanager.spotify import Spotify
 
 
 def test_insertItemsFromPlaylist(tmp_path):
@@ -17,7 +17,7 @@ def test_insertItemsFromPlaylist(tmp_path):
     # Create a new temporary database.
     database_path = tmp_path / "test.db"
     app = dut.SpotifyManager(database_path)
-    app.api = SpotifyInterface(token)
+    app.api = Spotify(token)
     app.db.create_tables()
     cur = app.db._con.cursor()
 
@@ -167,7 +167,7 @@ def test_insertItemsFromPlaylist_rated(tmp_path):
     # Create a new temporary database.
     database_path = tmp_path / "test.db"
     app = dut.SpotifyManager(database_path)
-    app.api = SpotifyInterface(token)
+    app.api = Spotify(token)
     app.db.create_tables()
     cur = app.db._con.cursor()
 
@@ -266,7 +266,7 @@ def test_fetchAlbums(tmp_path):
     # Create a new temporary database.
     database_path = tmp_path / "test.db"
     app = dut.SpotifyManager(database_path)
-    app.api = SpotifyInterface("sample_token")
+    app.api = Spotify("sample_token")
     app.db.create_tables()
 
     # Populate artists, so we can fetch albums for these.
@@ -375,7 +375,7 @@ def test_fetchTracks(tmp_path):
     # Create a new temporary database.
     database_path = tmp_path / "test.db"
     app = dut.SpotifyManager(database_path)
-    app.api = SpotifyInterface("sample_token")
+    app.api = Spotify("sample_token")
     app.db.create_tables()
 
     # Populate the albums, so we can fetch tracks for these.

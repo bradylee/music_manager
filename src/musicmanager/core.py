@@ -3,7 +3,7 @@ import logging
 
 from musicmanager import item
 from musicmanager.database_interface import DatabaseInterface
-from musicmanager.spotify_interface import SpotifyInterface
+from musicmanager.spotify import Spotify
 
 
 class SpotifyManager:
@@ -85,10 +85,10 @@ class SpotifyManager:
         elif args.subparser == "upgrade":
             self.db.upgrade_tables()
         elif args.subparser == "add":
-            self.api = SpotifyInterface(args.token)
+            self.api = Spotify(args.token)
             self.insert_items_from_playlist(args.playlist_id, rating=args.rating)
         elif args.subparser == "fetch":
-            self.api = SpotifyInterface(args.token)
+            self.api = Spotify(args.token)
             self.fetch_albums()
             self.fetch_tracks()
         elif args.subparser == "show":

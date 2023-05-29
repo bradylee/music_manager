@@ -5,9 +5,9 @@ import requests
 from musicmanager.item import Album, Artist, Track
 
 
-class SpotifyInterface:
+class Spotify:
     """
-    Class to interface with the Spotify API in Spotify Manager.
+    Interface to the Spotify API.
     """
 
     def __init__(self, token):
