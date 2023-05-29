@@ -2,7 +2,7 @@ from urllib.parse import parse_qs, urlparse
 
 import requests_mock
 
-from musicmanager import spotify_interface as dut
+from musicmanager import spotify as dut
 
 
 def test_getRequestHeaders():
@@ -12,7 +12,7 @@ def test_getRequestHeaders():
     """
     # Test a sample token.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     headers = api.get_request_headers()
     assert headers["Accept"] == "application/json"
     assert headers["Content-Type"] == "application/json"
@@ -20,7 +20,7 @@ def test_getRequestHeaders():
 
     # Test another sample.
     token = "another_sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     headers = api.get_request_headers()
     assert headers["Authorization"] == "Bearer another_sample"
 
@@ -31,7 +31,7 @@ def test_getPlaylistItems():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     playlist_id = "example"
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
@@ -129,7 +129,7 @@ def test_getPlaylistItems_multipleRequests():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     playlist_id = "example"
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
@@ -256,7 +256,7 @@ def test_getPlaylistItems_badResponse():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     playlist_id = "example"
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
@@ -275,7 +275,7 @@ def test_getArtistAlbums():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     artist_id = "0gJ0dOw0r6daBMmJr6ROvQ"
     endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
 
@@ -340,7 +340,7 @@ def test_getArtistAlbums_multipleRequests():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     artist_id = "0gJ0dOw0r6daBMmJr6ROvQ"
     endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
 
@@ -441,7 +441,7 @@ def test_getArtistAlbums_badResponse():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     artist_id = "0gJ0dOw0r6daBMmJr6ROvQ"
     endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
 
@@ -460,7 +460,7 @@ def test_getAlbumTracks():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     album_id = "1B5sG6YCOqglv5djSYqp0X"
     endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
 
@@ -529,7 +529,7 @@ def test_getAlbumTracks_badResponse():
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
-    api = dut.SpotifyInterface(token)
+    api = dut.Spotify(token)
     album_id = "1B5sG6YCOqglv5djSYqp0X"
     endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
 
