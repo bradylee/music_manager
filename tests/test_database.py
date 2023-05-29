@@ -1,6 +1,6 @@
 import pytest
 
-from musicmanager import database_interface as dut
+from musicmanager import database as dut
 from musicmanager.item import Album, Artist, Track
 
 
@@ -9,7 +9,7 @@ def test_transaction(tmp_path):
     Test `transaction` by checking that changes are committed when no exception is thrown.
     """
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
 
     # Create a basic table and insert an arbitrary value.
     with db.transaction():
@@ -27,7 +27,7 @@ def test_transaction_exception(tmp_path):
     Test `transaction` by checking that changes are not committed when an exception is thrown.
     """
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
 
     # Throw an exception during a transaction to demonstrate rollback.
     with pytest.raises(RuntimeError):
@@ -48,7 +48,7 @@ def test_createTables(tmp_path):
     Test `create_tables` by checking the list of tables and the version number.
     """
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     cur = db._con.cursor()
 
     # Function under test.
@@ -63,7 +63,7 @@ def test_createTables(tmp_path):
 
     # Verify the version table includes the latest version.
     rows = cur.execute("SELECT * FROM version").fetchall()
-    version = dut.DatabaseInterface.get_latest_schema_version()
+    version = dut.Database.get_latest_schema_version()
     assert rows == [version]
 
 
@@ -72,7 +72,7 @@ def test_createTables_force(tmp_path):
     Test `create_tables` by confirming data is cleared on force.
     """
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     cur = db._con.cursor()
 
     # Create the initial tables.
@@ -135,7 +135,7 @@ def test_insertTracks(tmp_path):
     ]
 
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     db.create_tables()
     cur = db._con.cursor()
 
@@ -197,7 +197,7 @@ def test_insertTracks_rated(tmp_path):
     ]
 
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     db.create_tables()
     cur = db._con.cursor()
 
@@ -280,7 +280,7 @@ def test_insertAlbums(tmp_path):
     ]
 
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     db.create_tables()
     cur = db._con.cursor()
 
@@ -327,7 +327,7 @@ def test_insertArtists(tmp_path):
     ]
 
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     db.create_tables()
     cur = db._con.cursor()
 
@@ -357,18 +357,18 @@ def test_semanticVersionToTuple():
     """
     Test `semantic_version_to_tuple` with example data.
     """
-    assert dut.DatabaseInterface.semantic_version_to_tuple("1.0.0") == (1, 0, 0)
-    assert dut.DatabaseInterface.semantic_version_to_tuple("10.0.1") == (10, 0, 1)
-    assert dut.DatabaseInterface.semantic_version_to_tuple("2.10.100") == (2, 10, 100)
+    assert dut.Database.semantic_version_to_tuple("1.0.0") == (1, 0, 0)
+    assert dut.Database.semantic_version_to_tuple("10.0.1") == (10, 0, 1)
+    assert dut.Database.semantic_version_to_tuple("2.10.100") == (2, 10, 100)
 
 
 def test_tupleToSemanticVersion():
     """
     Test `tuple_to_semantic_version` with example data.
     """
-    assert dut.DatabaseInterface.tuple_to_semantic_version((1, 0, 0)) == "1.0.0"
-    assert dut.DatabaseInterface.tuple_to_semantic_version((10, 0, 1)) == "10.0.1"
-    assert dut.DatabaseInterface.tuple_to_semantic_version((2, 10, 100)) == "2.10.100"
+    assert dut.Database.tuple_to_semantic_version((1, 0, 0)) == "1.0.0"
+    assert dut.Database.tuple_to_semantic_version((10, 0, 1)) == "10.0.1"
+    assert dut.Database.tuple_to_semantic_version((2, 10, 100)) == "2.10.100"
 
 
 def test_getLatestSchemaVersion():
@@ -384,7 +384,7 @@ def test_getLatestSchemaVersion():
     }
 
     # Verify the latest schema is the greatest version number.
-    assert dut.DatabaseInterface.get_latest_schema_version(schemas) == (10, 10, 0)
+    assert dut.Database.get_latest_schema_version(schemas) == (10, 10, 0)
 
 
 def test_getSchema():
@@ -392,7 +392,7 @@ def test_getSchema():
     Test `get_schema` by requesting a valid version.
     """
     # Verify the value for a real version.
-    assert dut.DatabaseInterface.get_schema((1, 0, 0)) == {
+    assert dut.Database.get_schema((1, 0, 0)) == {
         "tracks": {
             "id": "text NOT NULL PRIMARY KEY",
             "name": "text NOT NULL",
@@ -415,7 +415,7 @@ def test_getSchema_invalid():
     Test `get_schema` by requesting an invalid version.
     """
     # Verify the value for a fake version.
-    assert dut.DatabaseInterface.get_schema((0, 0, 0)) is None
+    assert dut.Database.get_schema((0, 0, 0)) is None
 
 
 def test_createTableFromSchema(tmp_path):
@@ -423,7 +423,7 @@ def test_createTableFromSchema(tmp_path):
     Test `create_table_from_schema` using a simplified schema.
     """
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     cur = db._con.cursor()
 
     # Example schema.
@@ -457,7 +457,7 @@ def test_upgradeTables(tmp_path):
     Test `upgrade_tables` by creating a 1.0.0 table and upgrading it to the 1.1.0 schema.
     """
     # Create a new temporary database with an old schema.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     db.create_tables(version=(1, 0, 0))
     cur = db._con.cursor()
 
@@ -520,7 +520,7 @@ def test_printSummary(tmp_path, capsys):
     Test `print_summary` by inserting different numbers of tracks, albums, and artists.
     """
     # Create a new temporary database.
-    db = dut.DatabaseInterface(tmp_path / "test.db")
+    db = dut.Database(tmp_path / "test.db")
     db.create_tables()
     cur = db._con.cursor()
 
