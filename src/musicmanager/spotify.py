@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from musicmanager.item import Album, Artist, Track
+from musicmanager.item import Album, Artist, Playlist, Track
 
 
 class Spotify:
@@ -24,15 +24,15 @@ class Spotify:
         }
         return headers
 
-    def get_playlist_items(self, playlist_id, limit=50):
+    def get_playlist(self, id_, limit=50):
         """
-        Request items from a Spotify playlist.
-        Returns a list of Track objects.
+        Fetch a Spotify playlist by id.
+        Returns a Playlist object.
         """
-        tracks = []
+        playlist = Playlist()
 
         # API endpoint to get tracks from a playlist.
-        endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+        endpoint = f"https://api.spotify.com/v1/playlists/{id_}/tracks"
 
         market = "US"
         fields = "items(track(name,id,album(name,id,artists(name,id)))),total"
@@ -75,9 +75,9 @@ class Spotify:
                 artist = Artist(artist_data["id"], artist_data["name"])
                 album = Album(album_data["id"], album_data["name"], artist=artist)
                 track = Track(track_data["id"], track_data["name"], album=album)
-                tracks.append(track)
+                playlist.add_track(track)
 
-        return tracks
+        return playlist
 
     def get_artist_albums(self, artist_id, limit=50):
         """

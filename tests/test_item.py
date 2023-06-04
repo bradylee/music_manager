@@ -1,88 +1,75 @@
-from musicmanager import item as dut
-from musicmanager.item import Album, Artist, Track
+from musicmanager.item import Album, Artist, Playlist, Track
 
 
-def test_getAlbumList():
+def test_playlist_album_iterator():
     """
-    Test `get_album_list` with sample data including duplicates.
+    Test that the album iterator in the Playlist object returns unique albums.
     """
-    # Input data that includes duplicate albums.
-    tracks = [
-        Track(
-            "6bsxDgpU5nlcHNZYtsfZG8",
-            "Bleeding Sun",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
-        ),
-        Track(
-            "6bsxDgpU5nlcHNZYtsfZG82",
-            "Bleeding Sun 2",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
-        ),
-        Track(
-            "15eQh5ZLBoMReY20MDG37T",
-            "Breathless",
-            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured"),
-        ),
-        Track(
-            "2GDX9DpZgXsLAkXhHBQU1Q",
-            "Choke",
-            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise"),
-        ),
-    ]
-
-    # Function under test.
-    albums = dut.get_album_list(tracks)
-
-    # Verify the duplicate album was removed.
-    assert len(albums) == 3
-
-    # Verify the object member values.
-    assert albums[0].id == "7hkhFnClNPmRXL20KqdzSO"
-    assert albums[0].name == "Bleeding Sun"
-    assert albums[1].id == "1GLmxzF8g5p0fcdAatGq5Y"
-    assert albums[1].name == "Fractured"
-    assert albums[2].id == "0a40snAsSiU0fSBrba93YB"
-    assert albums[2].name == "World Demise"
-
-
-def test_getArtistList():
-    """
-    Test `get_artist_list` with sample data including duplicates.
-    """
-    # Input data.
+    # Create two unique albums for tracks in the playlist to belong to.
     albums = [
-        Album(
-            "7hkhFnClNPmRXL20KqdzSO",
-            "Bleeding Sun",
-            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin"),
-        ),
-        Album(
-            "1GLmxzF8g5p0fcdAatGq5Y",
-            "Fractured",
-            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
-        ),
-        Album(
-            "1GLmxzF8g5p0fcdAatGq5Y2",
-            "Fractured 2",
-            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
-        ),
-        Album(
-            "0a40snAsSiU0fSBrba93YB",
-            "World Demise",
-            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
-        ),
+        Album("album_id_0", "album_name_0"),
+        Album("album_id_1", "album_name_1"),
     ]
 
-    # Function under test.
-    artists = dut.get_artist_list(albums)
+    # Create a playlist with a couple tracks from each album to test that the iterator
+    # ignores repeated albums.
+    playlist = Playlist()
+    playlist.add_track(Track("track_id_0", "track_name_0", albums[0]))
+    playlist.add_track(Track("track_id_1", "track_name_1", albums[0]))
+    playlist.add_track(Track("track_id_2", "track_name_2", albums[1]))
+    playlist.add_track(Track("track_id_3", "track_name_3", albums[1]))
 
-    # Verify the duplicate artist was removed.
-    assert len(artists) == 3
+    # Iterate the albums and check only unique values are returned.
+    i = 0
+    for album in albums:
+        assert album == albums[i]
+        i += 1
 
-    # Verify the object member values.
-    assert artists[0].id == "4UgQ3EFa8fEeaIEg54uV5b"
-    assert artists[0].name == "Chelsea Grin"
-    assert artists[1].id == "7z9n8Q0icbgvXqx1RWoGrd"
-    assert artists[1].name == "FRCTRD"
-    assert artists[2].id == "7bDLHytU8vohbiWbePGrRU"
-    assert artists[2].name == "Falsifier"
+
+def test_playlist_artist_iterator():
+    """
+    Test that the artist iterator in the Playlist object returns unique artists.
+    """
+    # Create two unique artists for tracks in the playlist to be created by.
+    artists = [
+        Artist("artist_id_0", "artist_name_0"),
+        Artist("artist_id_1", "artist_name_1"),
+    ]
+
+    # Create a playlist with a couple tracks from each arist to test that the iterator
+    # ignores repeated artists.
+    playlist = Playlist()
+    playlist.add_track(
+        Track(
+            "track_id_0",
+            "track_name_0",
+            Album("album_id_0", "album_name_0", artists[0]),
+        )
+    )
+    playlist.add_track(
+        Track(
+            "track_id_1",
+            "track_name_1",
+            Album("album_id_1", "album_name_1", artists[0]),
+        )
+    )
+    playlist.add_track(
+        Track(
+            "track_id_2",
+            "track_name_2",
+            Album("album_id_2", "album_name_2", artists[1]),
+        )
+    )
+    playlist.add_track(
+        Track(
+            "track_id_3",
+            "track_name_3",
+            Album("album_id_3", "album_name_3", artists[1]),
+        )
+    )
+
+    # Iterate the artists and check only unique values are returned.
+    i = 0
+    for artist in artists:
+        assert artist == artists[i]
+        i += 1

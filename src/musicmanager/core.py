@@ -1,7 +1,6 @@
 import argparse
 import logging
 
-from musicmanager import item
 from musicmanager.database import Database
 from musicmanager.spotify import Spotify
 
@@ -106,18 +105,12 @@ class SpotifyManager:
             logging.error("Spotify interface is not initialized")
             return
 
-        tracks = self.api.get_playlist_items(playlist_id)
-
-        if tracks is None:
-            return
-
-        albums = item.get_album_list(tracks)
-        artists = item.get_artist_list(albums)
+        playlist = self.api.get_playlist(playlist_id)
 
         with self.db.transaction():
-            self.db.insert_tracks(tracks, rating=rating)
-            self.db.insert_albums(albums)
-            self.db.insert_artists(artists)
+            self.db.insert_tracks(playlist.tracks, rating=rating)
+            self.db.insert_albums(playlist.albums)
+            self.db.insert_artists(playlist.artists)
 
     def fetch_albums(self):
         """
