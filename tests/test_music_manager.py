@@ -86,7 +86,7 @@ def test_insertItemsFromPlaylist(tmp_path):
     cmd = """
       SELECT id,
              name,
-             album,
+             album_id,
              rating
         FROM tracks
     ORDER BY name
@@ -115,7 +115,7 @@ def test_insertItemsFromPlaylist(tmp_path):
     cmd = """
       SELECT id,
              name,
-             artist
+             artist_id
         FROM albums
     ORDER BY name
     """
@@ -236,7 +236,7 @@ def test_insertItemsFromPlaylist_rated(tmp_path):
     cmd = """
       SELECT id,
              name,
-             album,
+             album_id,
              rating
         FROM tracks
     ORDER BY name
