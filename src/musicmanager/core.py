@@ -41,11 +41,6 @@ class SpotifyManager:
             help="Set to drop and re-create any existing tables",
         )
 
-        # Upgrade command.
-        subparsers.add_parser(
-            "upgrade", help="Upgrade the database schema to the latest version"
-        )
-
         # Add command.
         subparser = subparsers.add_parser("add", help="Add items to the database")
         subparser.add_argument(
@@ -81,8 +76,6 @@ class SpotifyManager:
         # Execute the parsed command.
         if args.subparser == "init":
             self.db.create_tables(force=args.force)
-        elif args.subparser == "upgrade":
-            self.db.upgrade_tables()
         elif args.subparser == "add":
             self.api = Spotify(args.token)
             self.insert_items_from_playlist(args.playlist_id, rating=args.rating)
