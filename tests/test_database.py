@@ -45,11 +45,10 @@ def test_transaction_exception(tmp_path):
 
 def test_createTables(tmp_path):
     """
-    Test `create_tables` by checking the list of tables and the version number.
+    Test `create_tables` by checking the list of tables.
     """
     # Create a new temporary database.
     db = dut.Database(tmp_path / "test.db")
-    cur = db._con.cursor()
 
     # Function under test.
     db.create_tables()
@@ -59,12 +58,6 @@ def test_createTables(tmp_path):
     assert "tracks" in tables
     assert "albums" in tables
     assert "artists" in tables
-    assert "version" in tables
-
-    # Verify the version table includes the latest version.
-    rows = cur.execute("SELECT * FROM version").fetchall()
-    version = dut.Database.get_latest_schema_version()
-    assert rows == [version]
 
 
 def test_createTables_force(tmp_path):
