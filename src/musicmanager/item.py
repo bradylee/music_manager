@@ -1,6 +1,6 @@
 class Item:
     """
-    Generic class to represent a Spotify item.
+    Base interface for a Spotify item.
     """
 
     def __init__(self, id_, name):
@@ -13,7 +13,7 @@ class Item:
 
 class Track(Item):
     """
-    Represents a track.
+    Interface for a single track.
     """
 
     def __init__(self, id_, name, album=None):
@@ -26,7 +26,7 @@ class Track(Item):
 
 class Album(Item):
     """
-    Represents an album.
+    Interface for a single album.
     """
 
     def __init__(self, id_, name, artist=None):
@@ -39,7 +39,7 @@ class Album(Item):
 
 class Artist(Item):
     """
-    Represents an artist.
+    Interface for a single artist.
     """
 
     def __init__(self, id_, name):
@@ -49,27 +49,52 @@ class Artist(Item):
         return f"Artist({repr(self.id)}, {repr(self.name)})"
 
 
-def get_album_list(tracks):
+class Playlist:
     """
-    Get a list of unique albums from a list of tracks.
+    Interface for a playlist. Playlists contain a list of tracks.
     """
-    albums = []
-    lookup_table = set()
-    for track in tracks:
-        if track.album.id not in lookup_table:
-            lookup_table.add(track.album.id)
-            albums.append(track.album)
-    return albums
 
+    def __init__(self):
+        self._tracks = []
 
-def get_artist_list(albums):
-    """
-    Get a list of unique artists from a list of albums.
-    """
-    artists = []
-    lookup_table = set()
-    for album in albums:
-        if album.artist.id not in lookup_table:
-            lookup_table.add(album.artist.id)
-            artists.append(album.artist)
-    return artists
+    @property
+    def tracks(self):
+        return self._tracks
+
+    @property
+    def albums(self):
+        return list(self.iterate_albums())
+
+    @property
+    def artists(self):
+        return list(self.iterate_artists())
+
+    def add_track(self, track):
+        """
+        Add a single track to the playlist.
+        """
+        self._tracks.append(track)
+
+    def iterate_albums(self):
+        """
+        Iterate over albums referenced by the playlist tracks and yield each album on
+        the first occurrence.
+        """
+        lookup_table = set()
+        for track in self.tracks:
+            album = track.album
+            if album is not None and album.id not in lookup_table:
+                lookup_table.add(album.id)
+                yield album
+
+    def iterate_artists(self):
+        """
+        Iterate over artists referenced by the playlist tracks and yield each artist on
+        the first occurrence.
+        """
+        lookup_table = set()
+        for album in self.iterate_albums():
+            artist = album.artist
+            if artist is not None and artist.id not in lookup_table:
+                lookup_table.add(artist.id)
+                yield artist

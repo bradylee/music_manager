@@ -25,9 +25,9 @@ def test_getRequestHeaders():
     assert headers["Authorization"] == "Bearer another_sample"
 
 
-def test_getPlaylistItems():
+def test_getPlaylist():
     """
-    Test `get_playlist_items` by mocking the request and checking the response.
+    Test `get_playlist` by mocking the request and checking the response.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -94,7 +94,8 @@ def test_getPlaylistItems():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        tracks = api.get_playlist_items(playlist_id)
+        playlist = api.get_playlist(playlist_id)
+        tracks = playlist.tracks
 
         # Verify there was only one request.
         assert mock.call_count == 1
@@ -123,9 +124,9 @@ def test_getPlaylistItems():
         assert tracks[2].album.artist.name == "Falsifier"
 
 
-def test_getPlaylistItems_multipleRequests():
+def test_getPlaylist_multipleRequests():
     """
-    Test `get_playlist_items` limit and offset logic by forcing multiple requests.
+    Test `get_playlist` limit and offset logic by forcing multiple requests.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -221,7 +222,8 @@ def test_getPlaylistItems_multipleRequests():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=get_response, status_code=status_code)
-        tracks = api.get_playlist_items(playlist_id, limit=1)
+        playlist = api.get_playlist(playlist_id, limit=1)
+        tracks = playlist.tracks
 
         # Verify the number of requests made.
         assert mock.call_count == 3
@@ -250,9 +252,9 @@ def test_getPlaylistItems_multipleRequests():
         assert tracks[2].album.artist.name == "Falsifier"
 
 
-def test_getPlaylistItems_badResponse():
+def test_getPlaylist_badResponse():
     """
-    Test `get_playlist_items` with a bad response.
+    Test `get_playlist` with a bad response.
     """
     # Set arbitrary values since the request is mocked.
     token = "sample"
@@ -265,7 +267,7 @@ def test_getPlaylistItems_badResponse():
         status_code = 400
         mock.get(endpoint, json={"fake": "data"}, status_code=status_code)
 
-        assert api.get_playlist_items(playlist_id) is None
+        assert api.get_playlist(playlist_id) is None
         assert mock.call_count == 1
 
 
