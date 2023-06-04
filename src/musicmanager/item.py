@@ -3,8 +3,8 @@ class Item:
     Generic class to represent a Spotify item.
     """
 
-    def __init__(self, _id, name):
-        self.id = _id
+    def __init__(self, id_, name):
+        self.id = id_
         self.name = name
 
     def __repr__(self):
@@ -16,8 +16,8 @@ class Track(Item):
     Represents a track.
     """
 
-    def __init__(self, _id, name, album=None):
-        super().__init__(_id, name)
+    def __init__(self, id_, name, album=None):
+        super().__init__(id_, name)
         self.album = album
 
     def __repr__(self):
@@ -29,8 +29,8 @@ class Album(Item):
     Represents an album.
     """
 
-    def __init__(self, _id, name, artist=None):
-        super().__init__(_id, name)
+    def __init__(self, id_, name, artist=None):
+        super().__init__(id_, name)
         self.artist = artist
 
     def __repr__(self):
@@ -42,8 +42,8 @@ class Artist(Item):
     Represents an artist.
     """
 
-    def __init__(self, _id, name):
-        super().__init__(_id, name)
+    def __init__(self, id_, name):
+        super().__init__(id_, name)
 
     def __repr__(self):
         return f"Artist({repr(self.id)}, {repr(self.name)})"

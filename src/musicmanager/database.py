@@ -270,8 +270,8 @@ class Database:
                name
           FROM artists
         """
-        for _id, name in self._con.execute(cmd):
-            artist = Artist(_id, name)
+        for id_, name in self._con.execute(cmd):
+            artist = Artist(id_, name)
             artists.append(artist)
 
         return artists
