@@ -116,7 +116,6 @@ class Database:
                 self.drop_table("tracks")
                 self.drop_table("albums")
                 self.drop_table("artists")
-                self.drop_table("version")
 
             # Create the tracks table.
             if "tracks" not in tables or force:
@@ -129,24 +128,6 @@ class Database:
             # Create the artists table.
             if "artists" not in tables or force:
                 self.create_table_from_schema("artists", schema["artists"])
-
-            # Create a table to track the schema version.
-            if "version" not in tables or force:
-                cmd = """
-                CREATE TABLE version (
-                    major int NOT NULL PRIMARY KEY CHECK (major >= 0),
-                    minor int NOT NULL CHECK (minor >= 0),
-                    patch int NOT NULL CHECK (patch >= 0)
-                )
-                """
-                self._execute(cmd)
-
-                # Set the version.
-                cmd = """
-                INSERT INTO version (major, minor, patch)
-                     VALUES (?, ?, ?)
-                """
-                self._execute(cmd, version)
 
     def insert_tracks(self, tracks, rating=None):
         """
