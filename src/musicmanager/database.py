@@ -1,4 +1,3 @@
-import logging
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -333,58 +332,6 @@ class Database:
         )
         """
         self._execute(cmd)
-
-    def upgrade_tables(self, new_version=None):
-        """
-        Update tables to the given schema version.
-        """
-        existing_tables = self.get_tables()
-        item_tables = ["tracks", "albums", "artists"]
-
-        # Make sure the tables to be updated exist.
-        for table in item_tables:
-            if table not in existing_tables:
-                logging.error(f"Cannot update tables because {table} does not exist")
-                return
-
-        # Default to the latest version.
-        if new_version is None:
-            new_version = Database.get_latest_schema_version()
-
-        with self.transaction():
-            # Get current schema version.
-            if "version" in existing_tables:
-                current_version = self._execute("SELECT * FROM version").fetchone()
-            else:
-                # Assume the oldest version if the version table does not exist.
-                current_version = (1, 0, 0)
-
-            # Quit if there is nothing to update.
-            if new_version == current_version:
-                return
-
-            # Add new columns to the item tables.
-            current_schema = Database.get_schema(current_version)
-            new_schema = Database.get_schema(new_version)
-            for table in item_tables:
-                for column in new_schema[table].keys():
-                    if column in current_schema[table]:
-                        continue
-                    definition = new_schema[table][column]
-                    cmd = f"""
-                    ALTER TABLE {table}
-                            ADD {column} {definition}
-                    """
-                    self._execute(cmd)
-
-            # Update the version.
-            cmd = """
-            UPDATE version
-               SET major = ?,
-                   minor = ?,
-                   patch = ?
-            """
-            self._execute(cmd, new_version)
 
     def print_summary(self):
         """

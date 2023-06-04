@@ -452,69 +452,6 @@ def test_createTableFromSchema(tmp_path):
     assert len(rows) == 2
 
 
-def test_upgradeTables(tmp_path):
-    """
-    Test `upgrade_tables` by creating a 1.0.0 table and upgrading it to the 1.1.0 schema.
-    """
-    # Create a new temporary database with an old schema.
-    db = dut.Database(tmp_path / "test.db")
-    db.create_tables(version=(1, 0, 0))
-    cur = db._con.cursor()
-
-    # Insert sample data into the tables.
-    cmd = """
-    INSERT INTO tracks(id, name, album)
-         VALUES ('2GDX9DpZgXsLAkXhHBQU1Q', 'Choke', '0a40snAsSiU0fSBrba93YB');
-
-    INSERT INTO albums(id, name, artist)
-         VALUES ('0a40snAsSiU0fSBrba93YB', 'World Demise', '7bDLHytU8vohbiWbePGrRU');
-
-    INSERT INTO artists(id, name)
-         VALUES ('7bDLHytU8vohbiWbePGrRU', 'Falsifier');
-    """
-    cur.executescript(cmd)
-
-    # Verify the tables have only 1.0.0 columns.
-    rows = cur.execute("SELECT * FROM tracks").fetchall()
-    assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB")]
-    rows = cur.execute("SELECT * FROM albums").fetchall()
-    assert rows == [
-        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
-    ]
-    rows = cur.execute("SELECT * FROM artists").fetchall()
-    assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
-
-    # Upgrade the table to the newer schema.
-    db.upgrade_tables((1, 1, 0))
-
-    # Verify the tables now include 1.1.0 columns with default values.
-    rows = cur.execute("SELECT * FROM tracks").fetchall()
-    assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
-    rows = cur.execute("SELECT * FROM albums").fetchall()
-    assert rows == [
-        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
-    ]
-    rows = cur.execute("SELECT * FROM artists").fetchall()
-    assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
-
-    # Verify the version table shows the updated version.
-    rows = cur.execute("SELECT * FROM version").fetchall()
-    assert rows == [(1, 1, 0)]
-
-    # Verify that running again does nothing to show that upgrade is idempotent.
-    db.upgrade_tables((1, 1, 0))
-    rows = cur.execute("SELECT * FROM tracks").fetchall()
-    assert rows == [("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0, 0)]
-    rows = cur.execute("SELECT * FROM albums").fetchall()
-    assert rows == [
-        ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU")
-    ]
-    rows = cur.execute("SELECT * FROM artists").fetchall()
-    assert rows == [("7bDLHytU8vohbiWbePGrRU", "Falsifier")]
-    rows = cur.execute("SELECT * FROM version").fetchall()
-    assert rows == [(1, 1, 0)]
-
-
 def test_printSummary(tmp_path, capsys):
     """
     Test `print_summary` by inserting different numbers of tracks, albums, and artists.
