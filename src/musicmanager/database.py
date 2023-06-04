@@ -2,7 +2,6 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-from musicmanager import schema
 from musicmanager.item import Album, Artist, Track
 
 
@@ -98,16 +97,30 @@ class Database:
         if name in self.get_tables():
             self._execute(f"DROP TABLE {name}")
 
-    def create_tables(self, version=None, force=False):
+    def create_tables(self, force=False):
         """
-        Create tables for storing item information using the latest schema.
+        Create tables for storing item information.
         """
-        with self.transaction():
-            # Default to latest version if one is not given.
-            if version is None:
-                version = Database.get_latest_schema_version()
-            schema = Database.get_schema(version)
+        schema = {
+            "tracks": {
+                "id": "text NOT NULL PRIMARY KEY",
+                "name": "text NOT NULL",
+                "album": "text NOT NULL",
+                "rating": "int NOT NULL DEFAULT 0 CHECK (rating >= -1 AND rating <= 1)",
+                "num_times_rated": "int NOT NULL DEFAULT 0 CHECK (num_times_rated >= 0)",
+            },
+            "albums": {
+                "id": "text NOT NULL PRIMARY KEY",
+                "name": "text NOT NULL",
+                "artist": "text NOT NULL",
+            },
+            "artists": {
+                "id": "text NOT NULL PRIMARY KEY",
+                "name": "text NOT NULL",
+            },
+        }
 
+        with self.transaction():
             # Get a list of existing tables.
             tables = self.get_tables()
 
@@ -255,49 +268,6 @@ class Database:
             artists.append(artist)
 
         return artists
-
-    @staticmethod
-    def semantic_version_to_tuple(string):
-        """
-        Convert a semantic version string to a tuple.
-        This is useful for sorting versions by a numeric value.
-        This assumes a string of the format "MAJOR.MINOR.PATCH".
-        Semantic version extensions are not supported.
-        """
-        parts = string.split(".")
-        # Convert each part to an integer.
-        version = [int(part) for part in parts]
-        return tuple(version)
-
-    @staticmethod
-    def tuple_to_semantic_version(version):
-        """
-        Convert a tuple of three integers to a semantic version string.
-        """
-        # Convert each part of the tuple to a string.
-        parts = [str(part) for part in version]
-        return ".".join(parts)
-
-    @staticmethod
-    def get_latest_schema_version(schemas=None):
-        """
-        Return the latest version from the schemas lookup.
-        """
-        if schemas is None:
-            schemas = schema.schemas
-
-        # We use semantic versioning with no extensions, so we can simply sort after parsing to get
-        # the latest version.
-        versions = [Database.semantic_version_to_tuple(key) for key in schemas.keys()]
-        return sorted(versions)[-1]
-
-    @staticmethod
-    def get_schema(version):
-        """
-        Return the schema associated with the given version or None if the version does not exist.
-        """
-        semantic_version = Database.tuple_to_semantic_version(version)
-        return schema.schemas.get(semantic_version, None)
 
     def create_table_from_schema(self, name, schema):
         """
