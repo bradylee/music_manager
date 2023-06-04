@@ -105,14 +105,14 @@ class Database:
             "tracks": {
                 "id": "text NOT NULL PRIMARY KEY",
                 "name": "text NOT NULL",
-                "album": "text NOT NULL",
+                "album_id": "text NOT NULL",
                 "rating": "int NOT NULL DEFAULT 0 CHECK (rating >= -1 AND rating <= 1)",
                 "num_times_rated": "int NOT NULL DEFAULT 0 CHECK (num_times_rated >= 0)",
             },
             "albums": {
                 "id": "text NOT NULL PRIMARY KEY",
                 "name": "text NOT NULL",
-                "artist": "text NOT NULL",
+                "artist_id": "text NOT NULL",
             },
             "artists": {
                 "id": "text NOT NULL PRIMARY KEY",
@@ -149,7 +149,7 @@ class Database:
         if rating is None:
             # Insert the track without setting the rating.
             cmd = """
-            INSERT INTO tracks (id, name, album)
+            INSERT INTO tracks (id, name, album_id)
                  VALUES (?, ?, ?)
             ON CONFLICT (id)
                      DO NOTHING
@@ -158,7 +158,7 @@ class Database:
         else:
             # Insert the track and set the rating.
             cmd = """
-            INSERT INTO tracks (id, name, album, rating, num_times_rated)
+            INSERT INTO tracks (id, name, album_id, rating, num_times_rated)
                  VALUES (?, ?, ?, ?, ?)
             ON CONFLICT (id)
                      DO UPDATE
@@ -175,7 +175,7 @@ class Database:
         Insert data into the albums table from a list of Album objects.
         """
         cmd = """
-        INSERT INTO albums (id, name, artist)
+        INSERT INTO albums (id, name, artist_id)
              VALUES (?, ?, ?)
         ON CONFLICT (id)
                  DO NOTHING
@@ -211,9 +211,9 @@ class Database:
                artists.name
           FROM tracks
           JOIN albums
-            ON tracks.album = albums.id
+            ON tracks.album_id = albums.id
           JOIN artists
-            ON albums.artist = artists.id
+            ON albums.artist_id = artists.id
         """
         for (
             track_id,
@@ -243,7 +243,7 @@ class Database:
                artists.name
           FROM albums
           JOIN artists
-            ON albums.artist = artists.id
+            ON albums.artist_id = artists.id
         """
         for album_id, album_name, artist_id, artist_name in self._con.execute(cmd):
             artist = Artist(artist_id, artist_name)

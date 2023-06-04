@@ -73,10 +73,10 @@ def test_createTables_force(tmp_path):
 
     # Insert sample data into the tables.
     cmd = """
-    INSERT INTO tracks(id, name, album)
+    INSERT INTO tracks(id, name, album_id)
          VALUES ('2GDX9DpZgXsLAkXhHBQU1Q', 'Choke', '0a40snAsSiU0fSBrba93YB');
 
-    INSERT INTO albums(id, name, artist)
+    INSERT INTO albums(id, name, artist_id)
          VALUES ('0a40snAsSiU0fSBrba93YB', 'World Demise', '7bDLHytU8vohbiWbePGrRU');
 
     INSERT INTO artists(id, name)
@@ -140,7 +140,7 @@ def test_insertTracks(tmp_path):
     cmd = """
       SELECT id,
              name,
-             album,
+             album_id,
              rating
         FROM tracks
     ORDER BY name
@@ -202,7 +202,7 @@ def test_insertTracks_rated(tmp_path):
     cmd = """
       SELECT id,
              name,
-             album,
+             album_id,
              rating
         FROM tracks
     ORDER BY name
@@ -235,7 +235,7 @@ def test_insertTracks_rated(tmp_path):
     cmd = """
       SELECT id,
              name,
-             album,
+             album_id,
              rating
         FROM tracks
     ORDER BY name
@@ -285,7 +285,7 @@ def test_insertAlbums(tmp_path):
     cmd = """
       SELECT id,
              name,
-             artist
+             artist_id
         FROM albums
     ORDER BY name
     """
@@ -402,7 +402,7 @@ def test_printSummary(tmp_path, capsys):
         ("0a40snAsSiU0fSBrba93YB", "World Demise", "7bDLHytU8vohbiWbePGrRU"),
         ("0a40snAsSiU0fSBrba93YB2", "World Demise 2", "7bDLHytU8vohbiWbePGrRU"),
     ]
-    cur.executemany("INSERT INTO albums(id, name, artist) VALUES (?, ?, ?)", albums)
+    cur.executemany("INSERT INTO albums(id, name, artist_id) VALUES (?, ?, ?)", albums)
 
     # Unique tracks with different ratings and number of times rated.
     # It should not be possible to have a rating with no times rated.
@@ -419,7 +419,7 @@ def test_printSummary(tmp_path, capsys):
         ("2GDX9DpZgXsLAkXhHBQU1Q6", "Choke 6", "0a40snAsSiU0fSBrba93YB2", -1, 3),
     ]
     cur.executemany(
-        "INSERT INTO tracks(id, name, album, rating, num_times_rated) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO tracks(id, name, album_id, rating, num_times_rated) VALUES (?, ?, ?, ?, ?)",
         tracks,
     )
 
