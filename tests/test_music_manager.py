@@ -101,15 +101,20 @@ def test_insertItemsFromPlaylist(tmp_path):
         "6bsxDgpU5nlcHNZYtsfZG8",
         "Bleeding Sun",
         "7hkhFnClNPmRXL20KqdzSO",
-        0,
+        None,
     )
     assert rows[1] == (
         "15eQh5ZLBoMReY20MDG37T",
         "Breathless",
         "1GLmxzF8g5p0fcdAatGq5Y",
-        0,
+        None,
     )
-    assert rows[2] == ("2GDX9DpZgXsLAkXhHBQU1Q", "Choke", "0a40snAsSiU0fSBrba93YB", 0)
+    assert rows[2] == (
+        "2GDX9DpZgXsLAkXhHBQU1Q",
+        "Choke",
+        "0a40snAsSiU0fSBrba93YB",
+        None,
+    )
 
     # Get the album data.
     cmd = """
