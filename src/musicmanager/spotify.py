@@ -83,7 +83,7 @@ class Spotify:
 
         return playlist
 
-    def get_artist_albums(self, artist_id, limit=50):
+    def get_artist_albums(self, artist, limit=50):
         """
         Request all albums for a Spotify artist.
         Returns a list of Album objects.
@@ -91,7 +91,7 @@ class Spotify:
         albums = []
 
         # API endpoint to get albums from an artist.
-        endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+        endpoint = f"https://api.spotify.com/v1/artists/{artist.id}/albums"
 
         market = "US"
         offset = 0
@@ -125,18 +125,18 @@ class Spotify:
 
             if total is None:
                 total = data["total"]
-                logging.debug(f"Artist has {total} albums")
+                logging.debug(f"Artist {repr(artist.name)} has {total} albums")
 
             # Parse the data to create an album list.
             for item in data["items"]:
                 album_id = item["id"]
                 album_name = item["name"]
-                album = Album(album_id, album_name, artist_id)
+                album = Album(album_id, album_name, artist.id)
                 albums.append(album)
 
         return albums
 
-    def get_album_tracks(self, album_id):
+    def get_album_tracks(self, album):
         """
         Request all tracks for a Spotify album.
         Returns a list of Track objects.
@@ -144,7 +144,7 @@ class Spotify:
         tracks = []
 
         # API endpoint to get tracks from an album.
-        endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+        endpoint = f"https://api.spotify.com/v1/albums/{album.id}"
 
         market = "US"
 
@@ -168,17 +168,17 @@ class Spotify:
         data = response.json()
 
         # Parse album data.
-        assert album_id == data["id"]
+        assert album.id == data["id"]
 
         # Parse track data.
         track_data = data["tracks"]
 
         total = track_data["total"]
-        logging.debug(f"Album has {total} tracks")
+        logging.debug(f"Album {repr(album.name)} has {total} tracks")
 
         # Create the track list.
         for track in track_data["items"]:
-            track = Track(track["id"], track["name"], album_id)
+            track = Track(track["id"], track["name"], album.id)
             tracks.append(track)
 
         return tracks

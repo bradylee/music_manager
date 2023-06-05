@@ -3,6 +3,7 @@ from urllib.parse import parse_qs, urlparse
 import requests_mock
 
 from musicmanager import spotify as dut
+from musicmanager.item import Album, Artist
 
 
 def test_getRequestHeaders():
@@ -297,8 +298,8 @@ def test_getArtistAlbums():
     # Set arbitrary values since the request is mocked.
     token = "sample"
     api = dut.Spotify(token)
-    artist_id = "0gJ0dOw0r6daBMmJr6ROvQ"
-    endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+    artist = Artist("0gJ0dOw0r6daBMmJr6ROvQ", "Abyss Walker")
+    endpoint = f"https://api.spotify.com/v1/artists/{artist.id}/albums"
 
     # Limited response data.
     response_data = {
@@ -332,7 +333,7 @@ def test_getArtistAlbums():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        albums = api.get_artist_albums(artist_id)
+        albums = api.get_artist_albums(artist)
 
         # Verify there was only one request.
         assert mock.call_count == 1
@@ -359,8 +360,8 @@ def test_getArtistAlbums_multipleRequests():
     # Set arbitrary values since the request is mocked.
     token = "sample"
     api = dut.Spotify(token)
-    artist_id = "0gJ0dOw0r6daBMmJr6ROvQ"
-    endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+    artist = Artist("0gJ0dOw0r6daBMmJr6ROvQ", "Abyss Walker")
+    endpoint = f"https://api.spotify.com/v1/artists/{artist.id}/albums"
 
     # Trimmed down response data.
     def get_response(request, context):
@@ -430,7 +431,7 @@ def test_getArtistAlbums_multipleRequests():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=get_response, status_code=status_code)
-        albums = api.get_artist_albums(artist_id, limit=1)
+        albums = api.get_artist_albums(artist, limit=1)
 
         # Verify the number of requests made.
         assert mock.call_count == 3
@@ -457,15 +458,15 @@ def test_getArtistAlbums_badResponse():
     # Set arbitrary values since the request is mocked.
     token = "sample"
     api = dut.Spotify(token)
-    artist_id = "0gJ0dOw0r6daBMmJr6ROvQ"
-    endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+    artist = Artist("0gJ0dOw0r6daBMmJr6ROvQ", "Abyss Walker")
+    endpoint = f"https://api.spotify.com/v1/artists/{artist.id}/albums"
 
     # Test that a bad response results in None.
     with requests_mock.mock() as mock:
         status_code = 400
         mock.get(endpoint, json={"fake": "data"}, status_code=status_code)
 
-        assert api.get_artist_albums(artist_id) is None
+        assert api.get_artist_albums(artist) is None
         assert mock.call_count == 1
 
 
@@ -476,8 +477,8 @@ def test_getAlbumTracks():
     # Set arbitrary values since the request is mocked.
     token = "sample"
     api = dut.Spotify(token)
-    album_id = "1B5sG6YCOqglv5djSYqp0X"
-    endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+    album = Album("1B5sG6YCOqglv5djSYqp0X", "The Beginning of the End", "")
+    endpoint = f"https://api.spotify.com/v1/albums/{album.id}"
 
     # Limited response data.
     response_data = {
@@ -512,7 +513,7 @@ def test_getAlbumTracks():
     with requests_mock.mock() as mock:
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
-        tracks = api.get_album_tracks(album_id)
+        tracks = api.get_album_tracks(album)
 
         # Verify there was only one request.
         assert mock.call_count == 1
@@ -539,13 +540,13 @@ def test_getAlbumTracks_badResponse():
     # Set arbitrary values since the request is mocked.
     token = "sample"
     api = dut.Spotify(token)
-    album_id = "1B5sG6YCOqglv5djSYqp0X"
-    endpoint = f"https://api.spotify.com/v1/albums/{album_id}"
+    album = Album("1B5sG6YCOqglv5djSYqp0X", "The Beginning of the End", "")
+    endpoint = f"https://api.spotify.com/v1/albums/{album.id}"
 
     # Test that a bad response results in None.
     with requests_mock.mock() as mock:
         status_code = 400
         mock.get(endpoint, json={"fake": "data"}, status_code=status_code)
 
-        assert api.get_album_tracks(album_id) is None
+        assert api.get_album_tracks(album) is None
         assert mock.call_count == 1

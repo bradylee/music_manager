@@ -21,6 +21,9 @@ class SpotifyManager:
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
+        # Reduce severity of loggings from external imports.
+        logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+
         # Create the database interface. This opens a database connection automatically.
         self.db = Database(database_path)
 
@@ -117,7 +120,7 @@ class SpotifyManager:
                 continue
 
             # Get album data and add it to the database.
-            albums = self.api.get_artist_albums(artist.id)
+            albums = self.api.get_artist_albums(artist)
             with self.db.transaction():
                 self.db.insert_albums(albums)
                 self.db.update_artist_time_fetched(artist)
@@ -134,7 +137,7 @@ class SpotifyManager:
                 continue
 
             # Get track data and add it to the database.
-            tracks = self.api.get_album_tracks(album.id)
+            tracks = self.api.get_album_tracks(album)
             with self.db.transaction():
                 self.db.insert_tracks(tracks)
                 self.db.update_album_time_fetched(album)
