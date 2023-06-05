@@ -349,28 +349,22 @@ def test_fetchAlbums(tmp_path):
         # Verify the album data.
         assert albums[0].id == "55Eath51v7Cj"
         assert albums[0].name == "Intergalactic"
-        assert albums[0].artist.id == "0gJ0dOw0r6d"
-        assert albums[0].artist.name == "Abyss"
+        assert albums[0].artist_id == "0gJ0dOw0r6d"
         assert albums[1].id == "1PGRRV8bSTwi"
         assert albums[1].name == "Ruff"
-        assert albums[1].artist.id == "0gJ0dOw0r6d"
-        assert albums[1].artist.name == "Abyss"
+        assert albums[1].artist_id == "0gJ0dOw0r6d"
         assert albums[2].id == "4vTvDu4oVQmg"
         assert albums[2].name == "Astronaut"
-        assert albums[2].artist.id == "0gJ0dOw0r6d"
-        assert albums[2].artist.name == "Abyss"
+        assert albums[2].artist_id == "0gJ0dOw0r6d"
         assert albums[3].id == "jEI6Ca2Inev"
         assert albums[3].name == "Metal Version"
-        assert albums[3].artist.id == "aBMmJr6ROvQ"
-        assert albums[3].artist.name == "Walker"
+        assert albums[3].artist_id == "aBMmJr6ROvQ"
         assert albums[4].id == "wiT66uIlJdQ3"
         assert albums[4].name == "Anthem"
-        assert albums[4].artist.id == "aBMmJr6ROvQ"
-        assert albums[4].artist.name == "Walker"
+        assert albums[4].artist_id == "aBMmJr6ROvQ"
         assert albums[5].id == "gSTAa9W2y1Z"
         assert albums[5].name == "Ocean"
-        assert albums[5].artist.id == "aBMmJr6ROvQ"
-        assert albums[5].artist.name == "Walker"
+        assert albums[5].artist_id == "aBMmJr6ROvQ"
 
 
 def test_fetchTracks(tmp_path):
@@ -383,15 +377,13 @@ def test_fetchTracks(tmp_path):
     app.api = Spotify("sample_token")
     app.db.create_tables()
 
-    # Populate the albums, so we can fetch tracks for these.
-    # We also need to populate the artist so the join succeeds.
-    artist = Artist("0gJ0dOw0r6d", "Acrania")
+    # Add some albums to the database. We will fetch tracks for these.
+    artist_id = "0gJ0dOw0r6d"
     albums = [
-        Album("1B5sG6YCOqg", "The Beginning", artist=artist),
-        Album("lv5djSYqp0X", "The End", artist=artist),
+        Album("1B5sG6YCOqg", "The Beginning", artist_id),
+        Album("lv5djSYqp0X", "The End", artist_id),
     ]
     with app.db.transaction():
-        app.db.insert_artists([artist])
         app.db.insert_albums(albums)
 
     # Limited response data for the first album.
@@ -466,37 +458,19 @@ def test_fetchTracks(tmp_path):
         # Verify the track data.
         assert tracks[0].id == "55Ps7eQ0IpSy"
         assert tracks[0].name == "Beginning"
-        assert tracks[0].album.id == "1B5sG6YCOqg"
-        assert tracks[0].album.name == "The Beginning"
-        assert tracks[0].album.artist.id == "0gJ0dOw0r6d"
-        assert tracks[0].album.artist.name == "Acrania"
+        assert tracks[0].album_id == "1B5sG6YCOqg"
         assert tracks[1].id == "5xyv86cHra90"
         assert tracks[1].name == "Auctioneer"
-        assert tracks[1].album.id == "1B5sG6YCOqg"
-        assert tracks[1].album.name == "The Beginning"
-        assert tracks[1].album.artist.id == "0gJ0dOw0r6d"
-        assert tracks[1].album.artist.name == "Acrania"
+        assert tracks[1].album_id == "1B5sG6YCOqg"
         assert tracks[2].id == "4tiUaYEcc20f"
         assert tracks[2].name == "Depopulation"
-        assert tracks[2].album.id == "1B5sG6YCOqg"
-        assert tracks[2].album.name == "The Beginning"
-        assert tracks[2].album.artist.id == "0gJ0dOw0r6d"
-        assert tracks[2].album.artist.name == "Acrania"
+        assert tracks[2].album_id == "1B5sG6YCOqg"
         assert tracks[3].id == "IpSypn32TH6uCi"
         assert tracks[3].name == "End"
-        assert tracks[3].album.id == "lv5djSYqp0X"
-        assert tracks[3].album.name == "The End"
-        assert tracks[3].album.artist.id == "0gJ0dOw0r6d"
-        assert tracks[3].album.artist.name == "Acrania"
+        assert tracks[3].album_id == "lv5djSYqp0X"
         assert tracks[4].id == "a90CtItbROxdl"
         assert tracks[4].name == "Depravity"
-        assert tracks[4].album.id == "lv5djSYqp0X"
-        assert tracks[4].album.name == "The End"
-        assert tracks[4].album.artist.id == "0gJ0dOw0r6d"
-        assert tracks[4].album.artist.name == "Acrania"
+        assert tracks[4].album_id == "lv5djSYqp0X"
         assert tracks[5].id == "c20fVSluB31T0y"
         assert tracks[5].name == "Programme"
-        assert tracks[5].album.id == "lv5djSYqp0X"
-        assert tracks[5].album.name == "The End"
-        assert tracks[5].album.artist.id == "0gJ0dOw0r6d"
-        assert tracks[5].album.artist.name == "Acrania"
+        assert tracks[5].album_id == "lv5djSYqp0X"

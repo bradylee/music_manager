@@ -113,17 +113,17 @@ def test_insertTracks(tmp_path):
         Track(
             "6bsxDgpU5nlcHNZYtsfZG8",
             "Bleeding Sun",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
+            "7hkhFnClNPmRXL20KqdzSO",
         ),
         Track(
             "15eQh5ZLBoMReY20MDG37T",
             "Breathless",
-            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured"),
+            "1GLmxzF8g5p0fcdAatGq5Y",
         ),
         Track(
             "2GDX9DpZgXsLAkXhHBQU1Q",
             "Choke",
-            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise"),
+            "0a40snAsSiU0fSBrba93YB",
         ),
     ]
 
@@ -180,17 +180,17 @@ def test_insertTracks_rated(tmp_path):
         Track(
             "6bsxDgpU5nlcHNZYtsfZG8",
             "Bleeding Sun",
-            album=Album("7hkhFnClNPmRXL20KqdzSO", "Bleeding Sun"),
+            "7hkhFnClNPmRXL20KqdzSO",
         ),
         Track(
             "15eQh5ZLBoMReY20MDG37T",
             "Breathless",
-            album=Album("1GLmxzF8g5p0fcdAatGq5Y", "Fractured"),
+            "1GLmxzF8g5p0fcdAatGq5Y",
         ),
         Track(
             "2GDX9DpZgXsLAkXhHBQU1Q",
             "Choke",
-            album=Album("0a40snAsSiU0fSBrba93YB", "World Demise"),
+            "0a40snAsSiU0fSBrba93YB",
         ),
     ]
 
@@ -263,17 +263,17 @@ def test_insertAlbums(tmp_path):
         Album(
             "7hkhFnClNPmRXL20KqdzSO",
             "Bleeding Sun",
-            artist=Artist("4UgQ3EFa8fEeaIEg54uV5b", "Chelsea Grin"),
+            "4UgQ3EFa8fEeaIEg54uV5b",
         ),
         Album(
             "1GLmxzF8g5p0fcdAatGq5Y",
             "Fractured",
-            artist=Artist("7z9n8Q0icbgvXqx1RWoGrd", "FRCTRD"),
+            "7z9n8Q0icbgvXqx1RWoGrd",
         ),
         Album(
             "0a40snAsSiU0fSBrba93YB",
             "World Demise",
-            artist=Artist("7bDLHytU8vohbiWbePGrRU", "Falsifier"),
+            "7bDLHytU8vohbiWbePGrRU",
         ),
     ]
 

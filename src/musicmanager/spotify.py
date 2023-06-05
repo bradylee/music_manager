@@ -64,17 +64,21 @@ class Spotify:
                 total = data["total"]
                 logging.debug(f"Playlist has {total} tracks")
 
-            # Parse the data to create a track list.
+            # Parse the response data.
             for item in data["items"]:
                 track_data = item["track"]
                 album_data = track_data["album"]
                 # Assume the artist listed first is the main artist.
                 artist_data = album_data["artists"][0]
 
-                # Create objects.
+                # Create items from the data.
                 artist = Artist(artist_data["id"], artist_data["name"])
-                album = Album(album_data["id"], album_data["name"], artist=artist)
-                track = Track(track_data["id"], track_data["name"], album=album)
+                album = Album(album_data["id"], album_data["name"], artist_data["id"])
+                track = Track(track_data["id"], track_data["name"], album_data["id"])
+
+                # Add the items to the playlist.
+                playlist.add_artist(artist)
+                playlist.add_album(album)
                 playlist.add_track(track)
 
         return playlist
@@ -98,7 +102,6 @@ class Spotify:
 
         # We get the total number of albums and the artist name from the first response.
         total = None
-        artist_name = None
 
         # Iterate requests until we get all albums.
         while total is None or offset < total:
@@ -124,20 +127,11 @@ class Spotify:
                 total = data["total"]
                 logging.debug(f"Artist has {total} albums")
 
-            # Parse the data to create a track list.
+            # Parse the data to create an album list.
             for item in data["items"]:
                 album_id = item["id"]
                 album_name = item["name"]
-
-                # Get the artist name.
-                if artist_name is None:
-                    for artist in item["artists"]:
-                        if artist["id"] == artist_id:
-                            artist_name = artist["name"]
-
-                # Create objects.
-                artist = Artist(artist_id, artist_name)
-                album = Album(album_id, album_name, artist=artist)
+                album = Album(album_id, album_name, artist_id)
                 albums.append(album)
 
         return albums
@@ -156,7 +150,6 @@ class Spotify:
 
         # We get the total number of tracks and the album name from the first response.
         total = None
-        album_name = None
 
         # This endpoint should return all tracks with a single request. It does not have inputs for
         # offset or limit.
@@ -176,7 +169,6 @@ class Spotify:
 
         # Parse album data.
         assert album_id == data["id"]
-        album_name = data["name"]
 
         # Parse track data.
         track_data = data["tracks"]
@@ -186,8 +178,7 @@ class Spotify:
 
         # Create the track list.
         for track in track_data["items"]:
-            album = Album(album_id, album_name)
-            track = Track(track["id"], track["name"], album=album)
+            track = Track(track["id"], track["name"], album_id)
             tracks.append(track)
 
         return tracks

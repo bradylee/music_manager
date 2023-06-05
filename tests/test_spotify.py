@@ -95,33 +95,42 @@ def test_getPlaylist():
         status_code = 200
         mock.get(endpoint, json=response_data, status_code=status_code)
         playlist = api.get_playlist(playlist_id)
-        tracks = playlist.tracks
 
         # Verify there was only one request.
         assert mock.call_count == 1
 
-        # Verify the number of tracks.
-        assert len(tracks) == 3
-
         # Verify the track data.
+        tracks = playlist.tracks
+        assert len(tracks) == 3
         assert tracks[0].id == "6bsxDgpU5nlcHNZYtsfZG8"
         assert tracks[0].name == "Bleeding Sun"
-        assert tracks[0].album.id == "7hkhFnClNPmRXL20KqdzSO"
-        assert tracks[0].album.name == "Bleeding Sun"
-        assert tracks[0].album.artist.id == "4UgQ3EFa8fEeaIEg54uV5b"
-        assert tracks[0].album.artist.name == "Chelsea Grin"
+        assert tracks[0].album_id == "7hkhFnClNPmRXL20KqdzSO"
         assert tracks[1].id == "15eQh5ZLBoMReY20MDG37T"
         assert tracks[1].name == "Breathless"
-        assert tracks[1].album.id == "1GLmxzF8g5p0fcdAatGq5Y"
-        assert tracks[1].album.name == "Fractured"
-        assert tracks[1].album.artist.id == "7z9n8Q0icbgvXqx1RWoGrd"
-        assert tracks[1].album.artist.name == "FRCTRD"
+        assert tracks[1].album_id == "1GLmxzF8g5p0fcdAatGq5Y"
         assert tracks[2].id == "2GDX9DpZgXsLAkXhHBQU1Q"
         assert tracks[2].name == "Choke"
-        assert tracks[2].album.id == "0a40snAsSiU0fSBrba93YB"
-        assert tracks[2].album.name == "World Demise"
-        assert tracks[2].album.artist.id == "7bDLHytU8vohbiWbePGrRU"
-        assert tracks[2].album.artist.name == "Falsifier"
+        assert tracks[2].album_id == "0a40snAsSiU0fSBrba93YB"
+
+        # Verify the album data.
+        albums = playlist.albums
+        assert len(albums) == 3
+        assert albums[0].id == "7hkhFnClNPmRXL20KqdzSO"
+        assert albums[0].name == "Bleeding Sun"
+        assert albums[1].id == "1GLmxzF8g5p0fcdAatGq5Y"
+        assert albums[1].name == "Fractured"
+        assert albums[2].id == "0a40snAsSiU0fSBrba93YB"
+        assert albums[2].name == "World Demise"
+
+        # Verify the artist data.
+        artists = playlist.artists
+        assert len(artists) == 3
+        assert artists[0].id == "4UgQ3EFa8fEeaIEg54uV5b"
+        assert artists[0].name == "Chelsea Grin"
+        assert artists[1].id == "7z9n8Q0icbgvXqx1RWoGrd"
+        assert artists[1].name == "FRCTRD"
+        assert artists[2].id == "7bDLHytU8vohbiWbePGrRU"
+        assert artists[2].name == "Falsifier"
 
 
 def test_getPlaylist_multipleRequests():
@@ -228,28 +237,38 @@ def test_getPlaylist_multipleRequests():
         # Verify the number of requests made.
         assert mock.call_count == 3
 
-        # Verify the number of tracks.
-        assert len(tracks) == 3
-
         # Verify the track data.
+        tracks = playlist.tracks
+        assert len(tracks) == 3
         assert tracks[0].id == "6bsxDgpU5nlcHNZYtsfZG8"
         assert tracks[0].name == "Bleeding Sun"
-        assert tracks[0].album.id == "7hkhFnClNPmRXL20KqdzSO"
-        assert tracks[0].album.name == "Bleeding Sun"
-        assert tracks[0].album.artist.id == "4UgQ3EFa8fEeaIEg54uV5b"
-        assert tracks[0].album.artist.name == "Chelsea Grin"
+        assert tracks[0].album_id == "7hkhFnClNPmRXL20KqdzSO"
         assert tracks[1].id == "15eQh5ZLBoMReY20MDG37T"
         assert tracks[1].name == "Breathless"
-        assert tracks[1].album.id == "1GLmxzF8g5p0fcdAatGq5Y"
-        assert tracks[1].album.name == "Fractured"
-        assert tracks[1].album.artist.id == "7z9n8Q0icbgvXqx1RWoGrd"
-        assert tracks[1].album.artist.name == "FRCTRD"
+        assert tracks[1].album_id == "1GLmxzF8g5p0fcdAatGq5Y"
         assert tracks[2].id == "2GDX9DpZgXsLAkXhHBQU1Q"
         assert tracks[2].name == "Choke"
-        assert tracks[2].album.id == "0a40snAsSiU0fSBrba93YB"
-        assert tracks[2].album.name == "World Demise"
-        assert tracks[2].album.artist.id == "7bDLHytU8vohbiWbePGrRU"
-        assert tracks[2].album.artist.name == "Falsifier"
+        assert tracks[2].album_id == "0a40snAsSiU0fSBrba93YB"
+
+        # Verify the album data.
+        albums = playlist.albums
+        assert len(albums) == 3
+        assert albums[0].id == "7hkhFnClNPmRXL20KqdzSO"
+        assert albums[0].name == "Bleeding Sun"
+        assert albums[1].id == "1GLmxzF8g5p0fcdAatGq5Y"
+        assert albums[1].name == "Fractured"
+        assert albums[2].id == "0a40snAsSiU0fSBrba93YB"
+        assert albums[2].name == "World Demise"
+
+        # Verify the artist data.
+        artists = playlist.artists
+        assert len(artists) == 3
+        assert artists[0].id == "4UgQ3EFa8fEeaIEg54uV5b"
+        assert artists[0].name == "Chelsea Grin"
+        assert artists[1].id == "7z9n8Q0icbgvXqx1RWoGrd"
+        assert artists[1].name == "FRCTRD"
+        assert artists[2].id == "7bDLHytU8vohbiWbePGrRU"
+        assert artists[2].name == "Falsifier"
 
 
 def test_getPlaylist_badResponse():
@@ -324,16 +343,13 @@ def test_getArtistAlbums():
         # Verify the album data.
         assert albums[0].id == "55Eath51v7CjEI6Ca2Inev"
         assert albums[0].name == "Intergalactic (Metal Version)"
-        assert albums[0].artist.id == "0gJ0dOw0r6daBMmJr6ROvQ"
-        assert albums[0].artist.name == "Abyss Walker"
+        assert albums[0].artist_id == "0gJ0dOw0r6daBMmJr6ROvQ"
         assert albums[1].id == "1PGRRV8bSTwiT66uIlJdQ3"
         assert albums[1].name == "Ruff Ryder's Anthem (Metal Version)"
-        assert albums[1].artist.id == "0gJ0dOw0r6daBMmJr6ROvQ"
-        assert albums[1].artist.name == "Abyss Walker"
+        assert albums[1].artist_id == "0gJ0dOw0r6daBMmJr6ROvQ"
         assert albums[2].id == "4vTvDu4oVQmgSTAa9W2y1Z"
         assert albums[2].name == "Astronaut In The Ocean"
-        assert albums[2].artist.id == "0gJ0dOw0r6daBMmJr6ROvQ"
-        assert albums[2].artist.name == "Abyss Walker"
+        assert albums[2].artist_id == "0gJ0dOw0r6daBMmJr6ROvQ"
 
 
 def test_getArtistAlbums_multipleRequests():
@@ -425,16 +441,13 @@ def test_getArtistAlbums_multipleRequests():
         # Verify the album data.
         assert albums[0].id == "55Eath51v7CjEI6Ca2Inev"
         assert albums[0].name == "Intergalactic (Metal Version)"
-        assert albums[0].artist.id == "0gJ0dOw0r6daBMmJr6ROvQ"
-        assert albums[0].artist.name == "Abyss Walker"
+        assert albums[0].artist_id == "0gJ0dOw0r6daBMmJr6ROvQ"
         assert albums[1].id == "1PGRRV8bSTwiT66uIlJdQ3"
         assert albums[1].name == "Ruff Ryder's Anthem (Metal Version)"
-        assert albums[1].artist.id == "0gJ0dOw0r6daBMmJr6ROvQ"
-        assert albums[1].artist.name == "Abyss Walker"
+        assert albums[1].artist_id == "0gJ0dOw0r6daBMmJr6ROvQ"
         assert albums[2].id == "4vTvDu4oVQmgSTAa9W2y1Z"
         assert albums[2].name == "Astronaut In The Ocean"
-        assert albums[2].artist.id == "0gJ0dOw0r6daBMmJr6ROvQ"
-        assert albums[2].artist.name == "Abyss Walker"
+        assert albums[2].artist_id == "0gJ0dOw0r6daBMmJr6ROvQ"
 
 
 def test_getArtistAlbums_badResponse():
@@ -510,19 +523,13 @@ def test_getAlbumTracks():
         # Verify the track data.
         assert tracks[0].id == "55Ps7eQ0IpSypn32TH6uCi"
         assert tracks[0].name == "The Beginning"
-        assert tracks[0].album.id == "1B5sG6YCOqglv5djSYqp0X"
-        assert tracks[0].album.name == "The Beginning of the End"
-        assert tracks[0].album.artist is None
+        assert tracks[0].album_id == "1B5sG6YCOqglv5djSYqp0X"
         assert tracks[1].id == "5xyv86cHra90CtItbROxdl"
         assert tracks[1].name == "Auctioneer of Depravity"
-        assert tracks[1].album.id == "1B5sG6YCOqglv5djSYqp0X"
-        assert tracks[1].album.name == "The Beginning of the End"
-        assert tracks[1].album.artist is None
+        assert tracks[1].album_id == "1B5sG6YCOqglv5djSYqp0X"
         assert tracks[2].id == "4tiUaYEcc20fVSluB31T0y"
         assert tracks[2].name == "The Depopulation Programme"
-        assert tracks[2].album.id == "1B5sG6YCOqglv5djSYqp0X"
-        assert tracks[2].album.name == "The Beginning of the End"
-        assert tracks[2].album.artist is None
+        assert tracks[2].album_id == "1B5sG6YCOqglv5djSYqp0X"
 
 
 def test_getAlbumTracks_badResponse():
