@@ -34,13 +34,14 @@ class Album(Item):
     Interface for a single album.
     """
 
-    def __init__(self, id_, name, artist_id):
+    def __init__(self, id_, name, artist_id, time_fetched=0):
         super().__init__(id_, name)
 
         self.artist_id = artist_id
+        self.time_fetched = time_fetched
 
     def __repr__(self):
-        return f"Album({repr(self.id)}, {repr(self.name)}, {repr(self.artist_id)})"
+        return f"Album({repr(self.id)}, {repr(self.name)}, {repr(self.artist_id)}, time_fetched={repr(self.time_fetched)})"
 
 
 class Artist(Item):
@@ -48,11 +49,13 @@ class Artist(Item):
     Interface for a single artist.
     """
 
-    def __init__(self, id_, name):
+    def __init__(self, id_, name, time_fetched=0):
         super().__init__(id_, name)
 
+        self.time_fetched = time_fetched
+
     def __repr__(self):
-        return f"Artist({repr(self.id)}, {repr(self.name)})"
+        return f"Artist({repr(self.id)}, {repr(self.name)}, time_fetched={repr(self.time_fetched)})"
 
 
 class Playlist:

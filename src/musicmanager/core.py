@@ -111,9 +111,16 @@ class SpotifyManager:
         """
         artists = self.db.get_artists()
         for artist in artists:
+            # Skip artists that have previously been fetched.
+            # TODO: Implement a timeout.
+            if artist.time_fetched > 0:
+                continue
+
+            # Get album data and add it to the database.
             albums = self.api.get_artist_albums(artist.id)
             with self.db.transaction():
                 self.db.insert_albums(albums)
+                self.db.update_artist_time_fetched(artist)
 
     def fetch_tracks(self):
         """
@@ -121,9 +128,16 @@ class SpotifyManager:
         """
         albums = self.db.get_albums()
         for album in albums:
+            # Skip albums that have previously been fetched.
+            # TODO: Implement a timeout.
+            if album.time_fetched > 0:
+                continue
+
+            # Get track data and add it to the database.
             tracks = self.api.get_album_tracks(album.id)
             with self.db.transaction():
                 self.db.insert_tracks(tracks)
+                self.db.update_album_time_fetched(album)
 
 
 def main():
