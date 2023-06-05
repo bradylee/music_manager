@@ -107,7 +107,6 @@ class Database:
                 "name": "text NOT NULL",
                 "album_id": "text NOT NULL",
                 "rating": "int DEFAULT NULL CHECK (rating IN (NULL, -1, 0, 1))",
-                "num_times_rated": "int NOT NULL DEFAULT 0 CHECK (num_times_rated >= 0)",
             },
             "albums": {
                 "id": "text NOT NULL PRIMARY KEY",
@@ -158,16 +157,13 @@ class Database:
         else:
             # Insert the track and set the rating.
             cmd = """
-            INSERT INTO tracks (id, name, album_id, rating, num_times_rated)
-                 VALUES (?, ?, ?, ?, ?)
+            INSERT INTO tracks (id, name, album_id, rating)
+                 VALUES (?, ?, ?, ?)
             ON CONFLICT (id)
                      DO UPDATE
-                    SET rating = excluded.rating,
-                        num_times_rated = num_times_rated + 1
+                    SET rating = excluded.rating
             """
-            data = [
-                (track.id, track.name, track.album.id, rating, 1) for track in tracks
-            ]
+            data = [(track.id, track.name, track.album.id, rating) for track in tracks]
         self._executemany(cmd, data)
 
     def insert_albums(self, albums):
@@ -297,14 +293,14 @@ class Database:
         cmd = """
         SELECT COUNT()
           FROM tracks
-         WHERE num_times_rated > 0
+         WHERE rating IS NOT NULL
         """
         num_rated_tracks = self._con.execute(cmd).fetchone()[0]
 
         cmd = """
         SELECT COUNT()
           FROM tracks
-         WHERE num_times_rated = 0
+         WHERE rating IS NULL
         """
         num_unrated_tracks = self._con.execute(cmd).fetchone()[0]
 
@@ -319,7 +315,6 @@ class Database:
         SELECT COUNT()
           FROM tracks
          WHERE rating = 0
-           AND num_times_rated > 0
         """
         num_neutral_tracks = self._con.execute(cmd).fetchone()[0]
 
