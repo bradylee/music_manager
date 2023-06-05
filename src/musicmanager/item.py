@@ -1,3 +1,6 @@
+from collections import OrderedDict
+
+
 class Item:
     """
     Base interface for a Spotify item.
@@ -16,12 +19,14 @@ class Track(Item):
     Interface for a single track.
     """
 
-    def __init__(self, id_, name, album=None):
+    def __init__(self, id_, name, album_id, rating=None):
         super().__init__(id_, name)
-        self.album = album
+
+        self.album_id = album_id
+        self.rating = rating
 
     def __repr__(self):
-        return f"Track({repr(self.id)}, {repr(self.name)}, album={self.album})"
+        return f"Track({repr(self.id)}, {repr(self.name)}, {repr(self.album_id)}, rating={repr(self.rating)})"
 
 
 class Album(Item):
@@ -29,12 +34,13 @@ class Album(Item):
     Interface for a single album.
     """
 
-    def __init__(self, id_, name, artist=None):
+    def __init__(self, id_, name, artist_id):
         super().__init__(id_, name)
-        self.artist = artist
+
+        self.artist_id = artist_id
 
     def __repr__(self):
-        return f"Album({repr(self.id)}, {repr(self.name)}, artist={self.artist})"
+        return f"Album({repr(self.id)}, {repr(self.name)}, {repr(self.artist_id)})"
 
 
 class Artist(Item):
@@ -51,50 +57,56 @@ class Artist(Item):
 
 class Playlist:
     """
-    Interface for a playlist. Playlists contain a list of tracks.
+    Interface for a playlist. Playlists contain lists for tracks, albums, and artists.
+    The tracks are the tracks in the playlist. The albums are the albums those tracks
+    are from. The artists are the artists that created those albums.
     """
 
     def __init__(self):
-        self._tracks = []
+        # Store items internally as dictionaries to ensure duplicates are ignored.
+        # The keys are the item ids, while the values are the actual items.
+        self._tracks = OrderedDict()
+        self._albums = OrderedDict()
+        self._artists = OrderedDict()
 
     @property
     def tracks(self):
-        return self._tracks
+        """
+        Returns a list of unique tracks in the playlist.
+        """
+        values = self._tracks.values()
+        return list(values)
 
     @property
     def albums(self):
-        return list(self.iterate_albums())
+        """
+        Returns a list of unique albums in the playlist.
+        """
+        values = self._albums.values()
+        return list(values)
 
     @property
     def artists(self):
-        return list(self.iterate_artists())
+        """
+        Returns a list of unique artists in the playlist.
+        """
+        values = self._artists.values()
+        return list(values)
 
     def add_track(self, track):
         """
         Add a single track to the playlist.
         """
-        self._tracks.append(track)
+        self._tracks[track.id] = track
 
-    def iterate_albums(self):
+    def add_album(self, album):
         """
-        Iterate over albums referenced by the playlist tracks and yield each album on
-        the first occurrence.
+        Add a single album to the playlist.
         """
-        lookup_table = set()
-        for track in self.tracks:
-            album = track.album
-            if album is not None and album.id not in lookup_table:
-                lookup_table.add(album.id)
-                yield album
+        self._albums[album.id] = album
 
-    def iterate_artists(self):
+    def add_artist(self, artist):
         """
-        Iterate over artists referenced by the playlist tracks and yield each artist on
-        the first occurrence.
+        Add a single artist to the playlist.
         """
-        lookup_table = set()
-        for album in self.iterate_albums():
-            artist = album.artist
-            if artist is not None and artist.id not in lookup_table:
-                lookup_table.add(artist.id)
-                yield artist
+        self._artists[artist.id] = artist

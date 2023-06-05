@@ -153,7 +153,7 @@ class Database:
             ON CONFLICT (id)
                      DO NOTHING
             """
-            data = [(track.id, track.name, track.album.id) for track in tracks]
+            data = [(track.id, track.name, track.album_id) for track in tracks]
         else:
             # Insert the track and set the rating.
             cmd = """
@@ -163,7 +163,7 @@ class Database:
                      DO UPDATE
                     SET rating = excluded.rating
             """
-            data = [(track.id, track.name, track.album.id, rating) for track in tracks]
+            data = [(track.id, track.name, track.album_id, rating) for track in tracks]
         self._executemany(cmd, data)
 
     def insert_albums(self, albums):
@@ -176,7 +176,7 @@ class Database:
         ON CONFLICT (id)
                  DO NOTHING
         """
-        data = [(album.id, album.name, album.artist.id) for album in albums]
+        data = [(album.id, album.name, album.artist_id) for album in albums]
         self._executemany(cmd, data)
 
     def insert_artists(self, artists):
@@ -194,63 +194,44 @@ class Database:
 
     def get_tracks(self):
         """
-        Get a list of all tracks in the database.
+        Returns a list of Track objects for all tracks in the database.
         """
         tracks = []
 
         cmd = """
-        SELECT tracks.id,
-               tracks.name,
-               albums.id,
-               albums.name,
-               artists.id,
-               artists.name
+        SELECT id,
+               name,
+               album_id,
+               rating
           FROM tracks
-          JOIN albums
-            ON tracks.album_id = albums.id
-          JOIN artists
-            ON albums.artist_id = artists.id
         """
-        for (
-            track_id,
-            track_name,
-            album_id,
-            album_name,
-            artist_id,
-            artist_name,
-        ) in self._con.execute(cmd):
-            artist = Artist(artist_id, artist_name)
-            album = Album(album_id, album_name, artist=artist)
-            track = Track(track_id, track_name, album=album)
+        for id_, name, album_id, rating in self._con.execute(cmd):
+            track = Track(id_, name, album_id, rating)
             tracks.append(track)
 
         return tracks
 
     def get_albums(self):
         """
-        Get a list of all albums in the database.
+        Returns a list of Album objects for all albums in the database.
         """
         albums = []
 
         cmd = """
-        SELECT albums.id,
-               albums.name,
-               artists.id,
-               artists.name
+        SELECT id,
+               name,
+               artist_id
           FROM albums
-          JOIN artists
-            ON albums.artist_id = artists.id
         """
-        for album_id, album_name, artist_id, artist_name in self._con.execute(cmd):
-            artist = Artist(artist_id, artist_name)
-            album = Album(album_id, album_name, artist=artist)
+        for id_, name, artist_id in self._con.execute(cmd):
+            album = Album(id_, name, artist_id)
             albums.append(album)
 
         return albums
 
     def get_artists(self):
         """
-        Get a list of all artists in the database.
+        Returns a list of Artist objects for all artists in the database.
         """
         artists = []
 
