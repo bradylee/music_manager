@@ -1,4 +1,5 @@
 import sqlite3
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -112,10 +113,12 @@ class Database:
                 "id": "text NOT NULL PRIMARY KEY",
                 "name": "text NOT NULL",
                 "artist_id": "text NOT NULL",
+                "time_fetched": "int NOT NULL DEFAULT 0 CHECK (time_fetched >= 0)",
             },
             "artists": {
                 "id": "text NOT NULL PRIMARY KEY",
                 "name": "text NOT NULL",
+                "time_fetched": "int NOT NULL DEFAULT 0 CHECK (time_fetched >= 0)",
             },
         }
 
@@ -192,6 +195,32 @@ class Database:
         data = [(artist.id, artist.name) for artist in artists]
         self._executemany(cmd, data)
 
+    def update_album_time_fetched(self, album):
+        """
+        Update the `time_fetched` column for an album with the current Unix timestamp.
+        """
+        timestamp = int(time.time())
+
+        cmd = f"""
+        UPDATE albums
+           SET time_fetched = {timestamp}
+         WHERE albums.id = '{album.id}'
+        """
+        self._execute(cmd)
+
+    def update_artist_time_fetched(self, artist):
+        """
+        Update the `time_fetched` column for an artist with the current Unix timestamp.
+        """
+        timestamp = int(time.time())
+
+        cmd = f"""
+        UPDATE artists
+           SET time_fetched = {timestamp}
+         WHERE artists.id = '{artist.id}'
+        """
+        self._execute(cmd)
+
     def get_tracks(self):
         """
         Returns a list of Track objects for all tracks in the database.
@@ -206,7 +235,7 @@ class Database:
           FROM tracks
         """
         for id_, name, album_id, rating in self._con.execute(cmd):
-            track = Track(id_, name, album_id, rating)
+            track = Track(id_, name, album_id, rating=rating)
             tracks.append(track)
 
         return tracks
@@ -220,11 +249,12 @@ class Database:
         cmd = """
         SELECT id,
                name,
-               artist_id
+               artist_id,
+               time_fetched
           FROM albums
         """
-        for id_, name, artist_id in self._con.execute(cmd):
-            album = Album(id_, name, artist_id)
+        for id_, name, artist_id, time_fetched in self._con.execute(cmd):
+            album = Album(id_, name, artist_id, time_fetched=time_fetched)
             albums.append(album)
 
         return albums
@@ -237,11 +267,12 @@ class Database:
 
         cmd = """
         SELECT id,
-               name
+               name,
+               time_fetched
           FROM artists
         """
-        for id_, name in self._con.execute(cmd):
-            artist = Artist(id_, name)
+        for id_, name, time_fetched in self._con.execute(cmd):
+            artist = Artist(id_, name, time_fetched=time_fetched)
             artists.append(artist)
 
         return artists

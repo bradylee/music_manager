@@ -366,6 +366,11 @@ def test_fetchAlbums(tmp_path):
         assert albums[5].name == "Ocean"
         assert albums[5].artist_id == "aBMmJr6ROvQ"
 
+        # Verify the data is not fetched again due to the timestamp update.
+        assert mock.call_count == 2
+        app.fetch_albums()
+        assert mock.call_count == 2
+
 
 def test_fetchTracks(tmp_path):
     """
@@ -474,3 +479,8 @@ def test_fetchTracks(tmp_path):
         assert tracks[5].id == "c20fVSluB31T0y"
         assert tracks[5].name == "Programme"
         assert tracks[5].album_id == "lv5djSYqp0X"
+
+        # Verify the data is not fetched again due to the timestamp update.
+        assert mock.call_count == 2
+        app.fetch_tracks()
+        assert mock.call_count == 2
